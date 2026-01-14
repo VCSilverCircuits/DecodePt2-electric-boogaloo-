@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Motif;
 
 /**
  * Shared state for the match motif pattern.
@@ -29,4 +29,5 @@ public class MatchMotif {
     public static void reset() {
         pattern = MotifPattern.UNKNOWN;
     }
+
 }

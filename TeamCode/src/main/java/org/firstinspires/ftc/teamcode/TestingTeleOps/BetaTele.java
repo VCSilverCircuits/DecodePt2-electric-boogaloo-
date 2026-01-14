@@ -1,25 +1,15 @@
-package org.firstinspires.ftc.teamcode;
-
-import static com.qualcomm.robotcore.hardware.configuration.ConfigurationType.DeviceFlavor.I2C;
+package org.firstinspires.ftc.teamcode.TestingTeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import kotlin.contracts.Returns;
 @Disabled
 @TeleOp(name = "Beta Tele")
 public class BetaTele extends OpMode {
