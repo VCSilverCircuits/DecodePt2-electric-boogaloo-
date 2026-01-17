@@ -1,65 +1,84 @@
 package org.firstinspires.ftc.teamcode.Motif;
 
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.sun.tools.javac.util.List;
+import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensor1Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServoGroup {
-    private final Servo servo1, servo2, servo3;
-    private final ColorSensor color1, color2, color3;
-    private List<Servo> sequence;
+
+    private final Servo s1, s2, s3;
+    private final List<Servo> firingOrder = new ArrayList<>();
+
     private int index = 0;
     private boolean running = false;
+    private boolean servoUp = false;
     private long lastTime = 0;
-    private final long delayMs = 500; // delay between servos
 
-    public ServoGroup(HardwareMap hardwareMap,
-                      String servo1Name, String servo2Name, String servo3Name,
-                      String color1Name, String color2Name, String color3Name) {
-        servo1 = hardwareMap.get(Servo.class, servo1Name);
-        servo2 = hardwareMap.get(Servo.class, servo2Name);
-        servo3 = hardwareMap.get(Servo.class, servo3Name);
+    private static final long DELAY_MS = 400;
 
-        color1 = hardwareMap.get(ColorSensor.class, color1Name);
-        color2 = hardwareMap.get(ColorSensor.class, color2Name);
-        color3 = hardwareMap.get(ColorSensor.class, color3Name);
-
-        // Default sequence order
-        sequence = List.of(servo1, servo2, servo3);
+    public ServoGroup(HardwareMap hw,
+                      String servo1, String servo2, String servo3, String sensorF1, String sensorB1, String sensorLL) {
+        s1 = hw.get(Servo.class, servo1);
+        s2 = hw.get(Servo.class, servo2);
+        s3 = hw.get(Servo.class, servo3);
     }
 
-    /** Start a sequence based on a motif apriltag */
-    public void startMotif(double motifID) {
+    /**
+     * Build servo firing order from motif + sensor colors
+     */
+    public void startMotif(int motifID) {
         // fallback
-        if (motifID == 21) { // GPP
-            sequence = List.of(servo1, servo2, servo3);
+       /* if (motifID == 21) { // GPP
+            sequence = java.util.List.of(servo1, servo2, servo3);
         } else if (motifID == 22) { // PGP
-            sequence = List.of(servo2, servo1, servo3);
+            sequence = java.util.List.of(servo2, servo1, servo3);
         } else if (motifID == 23) { // PPG
-            sequence = List.of(servo3, servo1, servo2);
+            sequence = java.util.List.of(servo3, servo1, servo2);
         } else {
-            sequence = List.of(servo1, servo2, servo3);
+            sequence = java.util.List.of(servo1, servo2, servo3);
         }
         index = 0;
         running = true;
         lastTime = System.currentTimeMillis();
     }
 
-    /** Non-blocking loop to process the sequence */
-    public void loop() {
-        if (!running) return;
-        long now = System.currentTimeMillis();
-        if (index >= sequence.size()) {
-            running = false;
-            return;
+    private void addColor(MatchMotif.MotifPattern motif,
+                          ColorSensor1Test sensors,
+                          ColorSensor1Test.DetectedColor color) {
+
+        int count = motif == MatchMotif.MotifPattern.GPP && color == ColorSensor1Test.DetectedColor.PURPLE ? 2 :
+            motif == MatchMotif.MotifPattern.PGP ? 1 :
+                motif == MatchMotif.MotifPattern.PPG && color == ColorSensor1Test.DetectedColor.PURPLE ? 2 : 1;
+
+        for (int i = 0; i < count; i++) {
+            if (sensors.getS1() == color) firingOrder.add(s1);
+            else if (sensors.getS2() == color) firingOrder.add(s2);
+            else if (sensors.getS3() == color) firingOrder.add(s3);
         }
-        if (now - lastTime >= delayMs) {
-            Servo s = sequence.get(index);
-            s.setPosition(1); // flick servo up
-            lastTime = now;
+    }
+
+
+    public void loop() {
+        if (!running || index >= firingOrder.size()) return;
+
+        long now = System.currentTimeMillis();
+        if (now - lastTime < DELAY_MS) return;
+
+        Servo current = firingOrder.get(index);
+
+        if (!servoUp) {
+            current.setPosition(1);
+            servoUp = true;
+        } else {
+            current.setPosition(0);
+            servoUp = false;
             index++;
         }
+
+        lastTime = now;
     }
 
     public boolean isRunning() {
@@ -68,8 +87,9 @@ public class ServoGroup {
 
     public void stop() {
         running = false;
-        servo1.setPosition(0);
-        servo2.setPosition(0);
-        servo3.setPosition(0);
+        s1.setPosition(0);
+        s2.setPosition(0);
+        s3.setPosition(0);
+    }*/
     }
 }

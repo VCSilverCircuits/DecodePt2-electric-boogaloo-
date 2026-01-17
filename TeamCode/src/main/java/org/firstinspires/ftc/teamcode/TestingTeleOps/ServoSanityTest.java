@@ -7,23 +7,23 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "Servo Sanity Test")
 public class ServoSanityTest extends OpMode {
 
-    private Servo servo3;
+    private Servo servo1;
 
     @Override
     public void init() {
-        servo3 = hardwareMap.get(Servo.class, "backFlipper");
-        servo3.setPosition(0.2);
+        servo1 = hardwareMap.get(Servo.class, "frontFlipper");
+        servo1.setPosition(0.5);
     }
 
     @Override
     public void loop() {
         if (gamepad1.a) {
-            servo3.setPosition(0.78);
+            servo1.setPosition(0);
         } else {
-            servo3.setPosition(0.2);
+            servo1.setPosition(0.5);
         }
 
-        telemetry.addData("Servo Pos", servo3.getPosition());
+        telemetry.addData("Servo Pos", servo1.getPosition());
         telemetry.update();
     }
 }

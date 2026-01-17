@@ -1,22 +1,29 @@
 package org.firstinspires.ftc.teamcode.TeleOps;
 
+import static org.firstinspires.ftc.teamcode.RedAuto.MAX_FLYWHEEL_RPM;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensor1Test;
 import org.firstinspires.ftc.teamcode.DualMotor;
+import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
+import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Red TeleOp")
 public class RedTele extends OpMode {
     ColorSensor1Test colorSensor1Test;
     AprilTagTurretControllerRed turretController;
+    private NormalizedColorSensor sensor1, sensor2, sensor3;
+
 
     // ================= DRIVE =================
     private Follower follower;
@@ -30,6 +37,8 @@ public class RedTele extends OpMode {
     public boolean lastRightTriggeredPressed = false;
     public boolean lastLeftTriggeredPressed = false;
     private boolean last2LT = false;
+
+    private static final double TICKS_PER_REV = 537.6;
 
     // ================= SHOOTER =================
     private DcMotorEx leftFlywheel, rightFlywheel;
@@ -48,6 +57,9 @@ public class RedTele extends OpMode {
     private DcMotorEx intake;
     private boolean intakeToggle = false;
     private boolean backspinToggle = false;
+
+    private ServoGroup motifServos;
+    private boolean motifButtonPressedLast = false;
 
 
     @Override
@@ -81,6 +93,12 @@ public class RedTele extends OpMode {
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
 
+        motifServos = new ServoGroup(
+            hardwareMap,
+            "frontFlipper", "backFlipper", "leftFlipper",
+            "sensorF1", "sensorB1", "sensorLL"
+        );
+
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(83.44, 15.25, Math.toRadians(0))); // example start
@@ -105,6 +123,16 @@ public class RedTele extends OpMode {
 
     @Override
     public void loop() {
+
+        boolean motifButton = gamepad2.a;
+        if (motifButton && !motifButtonPressedLast) {
+            // start sequence based on stored motif
+            motifServos.startMotif(MatchMotif.getPattern().ordinal() + 21); // 21,22,23 mapping
+        }
+        motifButtonPressedLast = motifButton;
+
+        //motifServos.loop();
+
         double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
         double power = turretController.getTurretPower(currentAngleDeg);
         turret.setPower(power);
@@ -126,7 +154,7 @@ public class RedTele extends OpMode {
         boolean rtPressed = gamepad2.right_trigger > 0.5;
         if (rtPressed && !lastRightTriggeredPressed) flywheelToggle = !flywheelToggle;
         lastRightTriggeredPressed = rtPressed;
-        flywheel.setPower(flywheelToggle ? 1 : 0);
+        setFlywheelPercent(1);
 
 
         // ================= FLIPPERS =================
@@ -159,15 +187,31 @@ public class RedTele extends OpMode {
         }
 
 // Set intake power based on toggles
-            // ================= TELEMETRY =================
+        // ================= TELEMETRY =================
 
-            telemetry.addData("Target RPM", targetRPM);
-            telemetry.addData("Hood Position", hoodPosition);
-            telemetry.addData("servo", servo2.getPosition());
-            telemetry.addData("Turret Encoder", turret.getCurrentPosition());
-            telemetry.addData("Turret Angle (deg)", currentAngleDeg);
-            telemetry.addData("Turret Power", power);
-            telemetry.addData("turretPosition", turret.getCurrentPosition());
-            telemetry.update();
-        }
+        telemetry.addData("Target RPM", targetRPM);
+        telemetry.addData("Hood Position", hoodPosition);
+        telemetry.addData("servo", servo2.getPosition());
+        telemetry.addData("Turret Encoder", turret.getCurrentPosition());
+        telemetry.addData("Turret Angle (deg)", currentAngleDeg);
+        telemetry.addData("Turret Power", power);
+        telemetry.addData("turretPosition", turret.getCurrentPosition());
+        telemetry.update();
     }
+
+    private void setFlywheelRPM(double rpm) {
+        double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
+        leftFlywheel.setVelocity(ticksPerSecond);
+        rightFlywheel.setVelocity(ticksPerSecond);
+    }
+
+    private void setFlywheelPercent(double percent) {
+        percent = Math.max(0, Math.min(1, percent)); // clamp
+        setFlywheelRPM(MAX_FLYWHEEL_RPM * percent);
+    }
+
+    private void stopFlywheel() {
+        leftFlywheel.setVelocity(0);
+        rightFlywheel.setVelocity(0);
+    }
+}
