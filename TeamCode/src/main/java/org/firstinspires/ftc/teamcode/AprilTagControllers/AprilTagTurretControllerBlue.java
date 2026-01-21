@@ -5,174 +5,95 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import com.pedropathing.geometry.Pose;
-
 import java.util.List;
 
 public class AprilTagTurretControllerBlue {
 
-    // ================= CONFIG =================
     private static final int TARGET_ID = 20;
 
-    // Field coordinates of goal (PedroPathing frame)
-    private static final double GOAL_X = 130.99065420560748;   // inches
-    private static final double GOAL_Y = 135.70093457943926;  // inches
-
-    // PIDF tuning
-    private static final double kP = 0.035;
-    private static final double kI = 0.0;
-    private static final double kD = 0.004;
-
+    // ===== PID =====
+    private static final double kP = 0.03;
+    private static final double kD = 0.003;
     private static final double MAX_POWER = 0.6;
-    private static final double DEADBAND = 1.0; // degrees
+    private static final double DEADBAND_DEG = 1.5;
 
-    // Soft limits
-    private static final double MIN_ANGLE_DEG = 0.0;
-    private static final double MAX_ANGLE_DEG = 270.0;
+    // ===== LIMITS =====
+    private static final double MIN_ANGLE_DEG = -80;
+    private static final double MAX_ANGLE_DEG = 260;
 
-    // ================= HARDWARE =================
     private final Limelight3A limelight;
 
-    // ================= STATE =================
-    private boolean hasLock = false;
-    private boolean hasEverSeenTag = false;
-
-    // PID state (shared for vision & odometry)
-    private double integralSum = 0.0;
-    private double lastError = 0.0;
+    // --- PID variables ---
+    private double lastError = 0;
     private long lastTimeNs = 0;
 
-    // ================= CONSTRUCTOR =================
+    // --- Vision lock ---
+    private boolean hasLock = false;
+
+    // --- Turret zeroing ---
+    private double turretZeroOffsetDeg = 0;
+    private boolean turretZeroed = false;
+
     public AprilTagTurretControllerBlue(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0); // AprilTag pipeline
+        limelight.pipelineSwitch(0);
         limelight.start();
     }
 
-    // =================================================
-    // ================= MAIN ENTRY ====================
-    // =================================================
     /**
-     * Computes turret motor power.
-     * @param currentTurretAngleDeg Absolute turret angle (deg)
-     * @param robotPose Current robot pose from odometry
-     * @param unusedManualX Set to 0 for fully autonomous
+     * Sets the current turret encoder position to be treated as a specific angle
+     * @param desiredAngleDeg the angle you want to consider as "zeroed"
+     * @param currentTurretAngleDeg the current encoder angle in degrees
      */
-    public double getTurretPower(
-        double currentTurretAngleDeg,
-        Pose robotPose,
-        double unusedManualX
-    ) {
+    public void setPosition(double desiredAngleDeg, double currentTurretAngleDeg) {
+        turretZeroOffsetDeg = desiredAngleDeg - currentTurretAngleDeg;
+        turretZeroed = true;
+    }
 
-        // ================= 1️⃣ VISION =================
+    /**
+     * Computes the turret power based on vision tracking
+     * @param currentTurretAngleDeg turret encoder angle in degrees
+     */
+    public double getTurretPower(double currentTurretAngleDeg) {
+
+        // Apply zero offset if set
+        if (turretZeroed) {
+            currentTurretAngleDeg += turretZeroOffsetDeg;
+        }
+
         LLResult result = limelight.getLatestResult();
+
+        // ==================== VISION MODE ====================
         if (result != null && result.isValid()) {
             List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
             for (LLResultTypes.FiducialResult tag : tags) {
                 if (tag.getFiducialId() == TARGET_ID) {
                     hasLock = true;
-                    hasEverSeenTag = true;
-                    double tx = result.getTx(); // horizontal error in degrees
-                    return pidController(tx);
+
+                    double tx = result.getTx(); // degrees offset from limelight
+                    return pid(tx);
                 }
             }
         }
 
-        // ================= 2️⃣ ODOMETRY =================
+        // No tag visible → stop turret
         hasLock = false;
-        resetPID();
-
-        if (robotPose != null) {
-            double targetAngle = computeTargetTurretAngle(robotPose);
-            return anglePID(targetAngle, currentTurretAngleDeg);
-        }
-
-        // ================= 3️⃣ FAILSAFE =================
-        return 0.0;
+        return 0;
     }
 
-    // =================================================
-    // ================= VISION PID ====================
-    // =================================================
-    private double pidController(double error) {
-        if (Math.abs(error) <= DEADBAND) {
-            resetPID();
-            return 0.0;
-        }
-        return computePID(error);
-    }
-
-    // =================================================
-    // ================= ANGLE PID =====================
-    // =================================================
-    private double anglePID(double targetDeg, double currentDeg) {
-        double error = targetDeg - currentDeg;
-
-        // shortest-path wrap
-        if (error > 180) error -= 360;
-        if (error < -180) error += 360;
-
-        if (Math.abs(error) <= DEADBAND) {
-            resetPID();
-            return 0.0;
-        }
-
-        return computePID(error);
-    }
-
-    // =================================================
-    // ================= PID CORE ======================
-    // =================================================
-    private double computePID(double error) {
+    // ==================== PID ====================
+    private double pid(double errorDeg) {
+        if (Math.abs(errorDeg) < DEADBAND_DEG) return 0;
 
         long now = System.nanoTime();
-
-        if (lastTimeNs == 0) {
-            lastTimeNs = now;
-            lastError = error;
-            return 0.0;
-        }
-
-        double dt = (now - lastTimeNs) / 1e9;
+        double dt = (lastTimeNs == 0) ? 0 : (now - lastTimeNs) / 1e9;
         lastTimeNs = now;
 
-        integralSum += error * dt;
-        integralSum = clamp(integralSum, -10, 10);
+        double derivative = (dt > 0) ? (errorDeg - lastError) / dt : 0;
+        lastError = errorDeg;
 
-        double derivative = (error - lastError) / dt;
-        lastError = error;
-
-        double output = (kP * error) + (kI * integralSum) + (kD * derivative);
+        double output = kP * errorDeg + kD * derivative;
         return clamp(output, -MAX_POWER, MAX_POWER);
-    }
-
-    // =================================================
-    // ================= GEOMETRY ======================
-    // =================================================
-    private double computeTargetTurretAngle(Pose robotPose) {
-
-        double dx = GOAL_X - robotPose.getX();
-        double dy = GOAL_Y - robotPose.getY();
-
-        double fieldAngleDeg = Math.toDegrees(Math.atan2(dy, dx));
-        double robotHeadingDeg = Math.toDegrees(robotPose.getHeading());
-
-        double turretTargetDeg = fieldAngleDeg - robotHeadingDeg;
-
-        // normalize [0,360)
-        turretTargetDeg = (turretTargetDeg + 360) % 360;
-
-        // clamp to soft limits
-        return clamp(turretTargetDeg, MIN_ANGLE_DEG, MAX_ANGLE_DEG);
-    }
-
-    // =================================================
-    // ================= UTIL ==========================
-    // =================================================
-    private void resetPID() {
-        integralSum = 0.0;
-        lastError = 0.0;
-        lastTimeNs = 0;
     }
 
     private double clamp(double val, double min, double max) {
@@ -183,7 +104,13 @@ public class AprilTagTurretControllerBlue {
         return hasLock;
     }
 
-    public boolean hasSeenTag() {
-        return hasEverSeenTag;
+    public boolean hasZeroed() {
+        return turretZeroed;
+    }
+
+    // Optional: reset PID entirely
+    public void resetController() {
+        lastError = 0;
+        lastTimeNs = 0;
     }
 }

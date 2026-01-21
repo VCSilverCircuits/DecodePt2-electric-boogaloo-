@@ -101,7 +101,7 @@ public class RedTele extends OpMode {
 
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(83.44, 15.25, Math.toRadians(0))); // example start
+        follower.setStartingPose(new Pose(122.0187, 123.8131, Math.toRadians(37))); // example start
         follower.update();
 
         // --- hood start ---
@@ -154,11 +154,11 @@ public class RedTele extends OpMode {
         boolean rtPressed = gamepad2.right_trigger > 0.5;
         if (rtPressed && !lastRightTriggeredPressed) flywheelToggle = !flywheelToggle;
         lastRightTriggeredPressed = rtPressed;
-        setFlywheelPercent(1);
+        setFlywheelPercent(0.4);
 
 
         // ================= FLIPPERS =================
-        servo1.setPosition(gamepad1.b ? 0.79 : 0);
+        servo1.setPosition(gamepad1.b ? 0.45 : 0);
         if (gamepad1.a) {
             servo2.setPosition(0);
         } else {
