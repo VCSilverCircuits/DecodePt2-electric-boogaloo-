@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.TeleOps;
 
-import static org.firstinspires.ftc.teamcode.RedAuto.MAX_FLYWHEEL_RPM;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,7 +10,6 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
-import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensor1Test;
 import org.firstinspires.ftc.teamcode.DualMotor;
 import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
@@ -24,7 +21,6 @@ public class BlueTele extends OpMode {
     ColorSensor1Test colorSensor1Test;
     AprilTagTurretControllerBlue turretController;
     private NormalizedColorSensor sensor1, sensor2, sensor3;
-
 
     // ================= DRIVE =================
     private Follower follower;
@@ -39,7 +35,7 @@ public class BlueTele extends OpMode {
     public boolean lastLeftTriggeredPressed = false;
     private boolean last2LT = false;
 
-    private static final double TICKS_PER_REV = 537.6;
+    private static final double TICKS_PER_REV = 28;
 
     // ================= SHOOTER =================
     private DcMotorEx leftFlywheel, rightFlywheel;
@@ -49,7 +45,6 @@ public class BlueTele extends OpMode {
     private static final double HOOD_INCREMENT = 0.01;
     DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
     private boolean flywheelToggle;
-
 
     // ================= FLIPPERS =================
     private Servo servo1, servo2, servo3;
@@ -61,7 +56,11 @@ public class BlueTele extends OpMode {
 
     private ServoGroup motifServos;
     private boolean motifButtonPressedLast = false;
+    private boolean lastFlywheelTrigger = false;
+    private boolean lastIntakeTrigger = false;
 
+    // ================= BLUE STARTING POSE =================
+    private Pose blueStartPose; // <-- Will be set from your values
 
     @Override
     public void init() {
@@ -102,7 +101,7 @@ public class BlueTele extends OpMode {
 
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(83.44, 15.25, Math.toRadians(0))); // example start
+        follower.setStartingPose(blueStartPose); // <-- Use the Blue start pose you provide
         follower.update();
 
         // --- hood start ---
@@ -111,8 +110,6 @@ public class BlueTele extends OpMode {
 
         turretController = new AprilTagTurretControllerBlue(hardwareMap);
         turretController.resetController();
-
-
     }
 
     @Override
@@ -124,19 +121,16 @@ public class BlueTele extends OpMode {
 
     @Override
     public void loop() {
-
         boolean motifButton = gamepad2.a;
         if (motifButton && !motifButtonPressedLast) {
-            // start sequence based on stored motif
-            motifServos.startMotif(MatchMotif.getPattern().ordinal() + 21); // 21,22,23 mapping
+            motifServos.startMotif(MatchMotif.getPattern().ordinal() + 21);
         }
         motifButtonPressedLast = motifButton;
-
-        //motifServos.loop();
 
         double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
         double power = turretController.getTurretPower(currentAngleDeg);
         turret.setPower(power);
+
         // ================= DRIVE =================
         follower.update();
         follower.setTeleOpDrive(
@@ -145,70 +139,59 @@ public class BlueTele extends OpMode {
             -gamepad1.right_stick_x * 0.5,
             true
         );
-        // Current turret angle
-
 
         turret.setPower((gamepad2.left_stick_x / 5) * 3);
 
-
         // ================= FLYWHEEL =================
-        boolean rtPressed = gamepad2.right_trigger > 0.5;
-        if (rtPressed && !lastRightTriggeredPressed) flywheelToggle = !flywheelToggle;
-        lastRightTriggeredPressed = rtPressed;
-        setFlywheelPercent(1);
+        boolean flywheelPressed = gamepad2.right_trigger > 0.5;
+        if (flywheelPressed && !lastFlywheelTrigger) {
+            flywheelToggle = !flywheelToggle;
+        }
+        lastFlywheelTrigger = flywheelPressed;
 
+        if (flywheelToggle) {
+            setFlywheelRPM(3850);
+        } else {
+            stopFlywheel();
+        }
 
         // ================= FLIPPERS =================
-        servo1.setPosition(gamepad1.b ? 0.45 : 0);
-        if (gamepad1.a) {
-            servo2.setPosition(0);
-        } else {
-            servo2.setPosition(1);
-        }
+        servo1.setPosition(gamepad1.b ? 0 : 0.45);
+        servo2.setPosition(gamepad1.a ? 0 : 1);
         servo3.setPosition(gamepad1.x ? 0.79 : 0);
+
         // ================= INTAKE AND BACKSPIN =================
-        boolean leftTriggerPressed = gamepad1.left_trigger > 0.5;
-        boolean rightTriggerPressed = gamepad1.right_trigger > 0.5;
+        boolean intakePressed = gamepad1.left_trigger > 0.5;
+        boolean backspinPressed = gamepad1.right_trigger > 0.5;
 
-// Toggle intake with left trigger
-        if (leftTriggerPressed && !lastLeftTriggeredPressed) intakeToggle = !intakeToggle;
-        lastLeftTriggeredPressed = leftTriggerPressed;
+        if (intakePressed && !lastIntakeTrigger) {
+            intakeToggle = !intakeToggle;
+        }
+        lastIntakeTrigger = intakePressed;
 
-// Toggle backspin with right trigger
-        if (rightTriggerPressed && !lastRightTriggeredPressed) backspinToggle = !backspinToggle;
-        lastRightTriggeredPressed = rightTriggerPressed;
-
-// Set motor power based on toggles
-        if (intakeToggle) {
-            intake.setPower(1);       // Intake spins forward
-        } else if (backspinToggle) {
-            intake.setPower(-1);      // Backspin spins backward
+        if (backspinPressed) {
+            intake.setPower(1);
+        } else if (intakeToggle) {
+            intake.setPower(-1);
         } else {
-            intake.setPower(0);       // Stop motor if neither
+            intake.setPower(0);
         }
 
-// Set intake power based on toggles
         // ================= TELEMETRY =================
-
         telemetry.addData("Target RPM", targetRPM);
         telemetry.addData("Hood Position", hoodPosition);
         telemetry.addData("servo", servo2.getPosition());
         telemetry.addData("Turret Encoder", turret.getCurrentPosition());
         telemetry.addData("Turret Angle (deg)", currentAngleDeg);
         telemetry.addData("Turret Power", power);
-        telemetry.addData("turretPosition", turret.getCurrentPosition());
         telemetry.update();
     }
 
     private void setFlywheelRPM(double rpm) {
         double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
+        leftFlywheel.setVelocityPIDFCoefficients(0.022,0,0,13.6);
         leftFlywheel.setVelocity(ticksPerSecond);
         rightFlywheel.setVelocity(ticksPerSecond);
-    }
-
-    private void setFlywheelPercent(double percent) {
-        percent = Math.max(0, Math.min(1, percent)); // clamp
-        setFlywheelRPM(MAX_FLYWHEEL_RPM * percent);
     }
 
     private void stopFlywheel() {

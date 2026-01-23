@@ -2,13 +2,14 @@ package org.firstinspires.ftc.teamcode.TestingTeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
+@Disabled
 @TeleOp
 public class GoalPositionTestTele extends OpMode {
     private AprilTagTurretControllerRed turretController;

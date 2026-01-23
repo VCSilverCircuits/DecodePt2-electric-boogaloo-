@@ -24,31 +24,37 @@ public class RedAuto extends OpMode {
     MecanumConstants mecanumConstants;
 
     private DcMotorEx turret;
-    private static final double TICKS_PER_REV = 537.6;
+    public static final double TICKS_PER_REV = 28;
     private static final double BELT_RATIO = 230.0 / 20.0;
-    private static final double TICKS_PER_MOTOR_REV = 537.6;
+    private static final double TICKS_PER_MOTOR_REV = 53;
     private static final double DEGREES_PER_TICK = 360.0 / TICKS_PER_MOTOR_REV / BELT_RATIO;
 
     int timesShot = 0;
 
     private AprilTagTurretControllerRed turretController;
 
-
-
+    double endPoseY = 93.9813;
+    double endPoseX = 95.1028;
     private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(37));
-    private final Pose endPose = new Pose(95.1028, 93.9813, Math.toRadians(37));
+    private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(37));
     private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(0));
-    private final Pose intake1 = new Pose(127, 93, Math.toRadians(0));
-    private final Pose releaseBalls = new Pose(128, 82, Math.toRadians(0));
-    private final Pose intake2 = new Pose(125,57, Math.toRadians(0));
+    private final Pose intake1 = new Pose(126, 96, Math.toRadians(0));
+    private final Pose releaseBalls = new Pose(130, 83, Math.toRadians(0));
+    private final Pose intake2Lineup = new Pose(95.15887850467287,65,Math.toRadians(-3));
+    private final Pose intake2 = new Pose(133,65, Math.toRadians(-7));
+    private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(-10));
+    private final Pose intake3 = new Pose(130,42, Math.toRadians(-3));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3;
     private DcMotorEx intake;
+    private boolean lastFlywheelTrigger = false;
+    private boolean lastIntakeTrigger = false;
+
 
     boolean shooting1Start = false;
 
-    public static final double MAX_FLYWHEEL_RPM = 10000;
+    public static final double MAX_FLYWHEEL_RPM = 6000;
 
     private int pathState = 0;
     private Paths paths;
@@ -63,9 +69,8 @@ public class RedAuto extends OpMode {
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-
         mecanumConstants = new MecanumConstants(); // assign to the class-level field
-        mecanumConstants.maxPower = 0.2;
+
 
         turret = hardwareMap.get(DcMotorEx.class, "turretRotation");
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -77,6 +82,7 @@ public class RedAuto extends OpMode {
 
         // Follower
         follower = AutoConstants.createFollower(hardwareMap);
+        follower.setMaxPower(1);
         follower.setStartingPose(startPose);
         follower.update();
 
@@ -138,7 +144,7 @@ public class RedAuto extends OpMode {
 
     public class Paths {
 
-        private PathChain startToEnd, endToTurnToIntake, turnToIntakeToIntake1, intake1ToReleaseBalls, releaseBallsToEndPose, endPoseToIntake2, intake2ToEndPose;
+        private PathChain startToEnd, endToTurnToIntake, turnToIntakeToIntake1, intake1ToReleaseBalls, releaseBallsToEndPose, endPoseToLineUp, lineupToIntake2, intake2ToEndPose, endPoseToLineup3, lineup3ToIntake3, intake3ToEndPose;
         private Follower follow;
 
         public Paths(Follower follower) {
@@ -148,7 +154,7 @@ public class RedAuto extends OpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading()).build();
 
             endToTurnToIntake = follower.pathBuilder().addPath(new BezierLine(endPose, turnToIntake))
-                .setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0)).build();
+                .setLinearHeadingInterpolation(endPose.getHeading(), intake1.getHeading()).build();
 
             turnToIntakeToIntake1 = follower.pathBuilder().addPath(new BezierLine(turnToIntake, intake1))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
@@ -158,11 +164,19 @@ public class RedAuto extends OpMode {
 
             releaseBallsToEndPose = follower.pathBuilder().addPath(new BezierLine(releaseBalls, endPose))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
+            endPoseToLineUp = follower.pathBuilder().addPath(new BezierLine(endPose,intake2Lineup))
+                .setLinearHeadingInterpolation(Math.toRadians(37),Math.toRadians(-3)).build();
 
-            endPoseToIntake2 = follower.pathBuilder().addPath(new BezierCurve(endPose,new Pose(66.803738317757, 42.17289719626167), intake2))
-                .setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0)).build();
+            lineupToIntake2 = follower.pathBuilder().addPath(new BezierLine(intake2Lineup, intake2))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-10)).build();
 
-            intake2ToEndPose = follower.pathBuilder().addPath(new BezierCurve(intake2, new Pose(79.813,48.407), endPose))
+            intake2ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake2, endPose))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
+            endPoseToLineup3 = follower.pathBuilder().addPath(new BezierLine(endPose, intake3Lineup))
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-7)).build();
+            lineup3ToIntake3 = follower.pathBuilder().addPath(new BezierLine(intake3Lineup, intake3))
+                .setLinearHeadingInterpolation(Math.toRadians(0),Math.toRadians(0)).build();
+            intake3ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake3, endPose))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
         }
 
@@ -171,7 +185,8 @@ public class RedAuto extends OpMode {
 
                 case 0: // Start -> Shoot preload
                     follow.followPath(startToEnd);
-                    setFlywheelPercent(0.4);
+                    follower.setMaxPower(1);
+                    setFlywheelRPM(3850);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     pathState = 1;
@@ -185,6 +200,7 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 2: // Shoot
+                    intake.setVelocity(0);
                     if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
                         servo1.setPosition(0);
                         //0
@@ -224,8 +240,10 @@ public class RedAuto extends OpMode {
                             pathState = 5; // go to first intake
                         } else if (timesShot == 2) {
                             pathState = 10; // go to second intake
+                        } else if (timesShot == 3){
+                            pathState = 16; // final state after second round
                         } else {
-                            pathState = 15; // final state after second round
+                            pathState = 21;
                         }
                     }
                     break;
@@ -239,7 +257,7 @@ public class RedAuto extends OpMode {
 
                 case 6:
                     if (follow.atPose(turnToIntake, 2, 2)) {
-                        mecanumConstants.maxPower = 0.2;
+                        follower.setMaxPower(0.8);
                         follow.followPath(turnToIntakeToIntake1);
                         pathTimer.resetTimer();
                         pathState = 7;
@@ -251,9 +269,9 @@ public class RedAuto extends OpMode {
                         if (pathTimer.getElapsedTimeSeconds() > 3){
                             intake.setPower(1);
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                        if (pathTimer.getElapsedTimeSeconds() > 1){
                             follow.followPath(intake1ToReleaseBalls);
-                            mecanumConstants.maxPower = 0.3;
+                            follower.setMaxPower(0.7);
                             pathTimer.resetTimer();
                             pathState = 8;
                         }
@@ -262,70 +280,136 @@ public class RedAuto extends OpMode {
 
                 case 8:
                     if (follow.atPose(releaseBalls, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 1) {
-                            intake.setPower(-1);
+                        if (pathTimer.getElapsedTimeSeconds() > 2) {
+                            intake.setPower(1);
+                            follower.setMaxPower(1);
                             follow.followPath(releaseBallsToEndPose);
                             pathTimer.resetTimer();
                             pathState = 9;
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                            intake.setPower(-1);
                         }
                     }
                     break;
 
                 case 9:
                     if (follow.atPose(endPose, 2, 2)) {
-                        mecanumConstants.maxPower = 0.55;
                         intake.setPower(0);
                         pathTimer.resetTimer();
                         pathState = 2; // final idle
                     }
                     break;
-
-                case 10: // Move to second intake
-                    follow.followPath(endPoseToIntake2);
-                    intake.setPower(-1);
-                    pathTimer.resetTimer(); // reset timer here once
+                case 10:
+                    follow.followPath(endPoseToLineUp);
+                    pathTimer.resetTimer();
                     pathState = 11;
                     break;
+                case 11:
+                    if (follow.atPose(intake2Lineup,2,2)){
+                        if (pathTimer.getElapsedTimeSeconds() > 1.75){
+                            pathState = 12;
+                            pathTimer.resetTimer();
+                        }
 
-                case 11: // Intake 2
-                    if (follow.atPose(intake2, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 3) {
-                            intake.setPower(1);
-                        }
-                        if (pathTimer.getElapsedTimeSeconds() > 4) {
-                            intake.setPower(-1);
-                            pathTimer.resetTimer(); // reset for next state
-                            pathState =12;
-                        }
+                    } else if (pathTimer.getElapsedTimeSeconds() > 3){
+                        pathTimer.resetTimer();
+                        pathState = 12;
                     }
                     break;
-                case 12:
-                    follow.followPath(intake2ToEndPose);
+
+
+                case 12: // Move to second intake
+                    follow.followPath(lineupToIntake2);
+                    follower.setMaxPower(0.75);
+                    intake.setPower(-1);
+                    pathTimer.resetTimer(); // reset timer here once
                     pathState = 13;
+                    break;
+
+                case 13: // Intake 2
+                    if (follow.atPose(intake2, 2, 2)) {
+                        if (pathTimer.getElapsedTimeSeconds() > 4) {
+                            intake.setPower(1);
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 2) {
+                            intake.setPower(-1);
+                            pathTimer.resetTimer();// reset for next state
+                            pathState =14;
+                        }
+                        follower.setMaxPower(1);
+                        endPoseX = endPoseX + 2;
+                        endPoseY = endPoseY + 2;
+                    }
+                    break;
+                case 14:
+                    follow.followPath(intake2ToEndPose);
+                    pathState = 15;
                    break;
-                case 13:
-                    if (follow.atPose(endPose,2,2)){
+                case 15:
+                    if (follow.atPose(endPose,2,2) ){
                         pathTimer.resetTimer();
                         pathState = 2;
                     }
+                    break;
+                case 16:
+                    follow.followPath(endPoseToLineup3);
+                    pathTimer.resetTimer();
+                    pathState = 17;
+                    break;
+                case 17:
+                    if (follow.atPose(intake3Lineup,2,2)){
+                        follower.setMaxPower(0.75);
+                        intake.setPower(-1);
+                        pathTimer.resetTimer();
+                        pathState = 18;
+                    }
+                        break;
+                case 18:
+                    follower.followPath(lineup3ToIntake3);
+                    follower.setMaxPower(0.75);
+                    pathTimer.resetTimer();
+                    pathState = 19;
+                    break;
+                case 19:
+                    follower.setMaxPower(1);
+                    if (follow.atPose(intake3,2,2)){
+                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                            pathTimer.resetTimer();
+                            pathState = 20;
+                        }
+                    }
+                    break;
+                case 20:
+                    follow.followPath(intake3ToEndPose);
+                    follower.setMaxPower(1);
+                    pathTimer.resetTimer();
+                    pathState = 21;
+                    break;
+                case 21:
+                    if (follow.atPose(endPose,2,2)){
+                        pathTimer.resetTimer();
+                        intake.setPower(0);
+                        pathState = 2;
+                    }
+                    break;
+                case 22:
+                    intake.setPower(0);
+                    requestOpModeStop();
+                    break;
             }
             return pathState;
         }
 
         private void setFlywheelRPM(double rpm) {
             double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
+            leftFlywheel.setVelocityPIDFCoefficients(0.022,0,0,13.6);
             leftFlywheel.setVelocity(ticksPerSecond);
             rightFlywheel.setVelocity(ticksPerSecond);
-        }
-
-        private void setFlywheelPercent(double percent) {
-            percent = Math.max(0, Math.min(1, percent)); // clamp
-            setFlywheelRPM(MAX_FLYWHEEL_RPM * percent);
-        }
-
-        private void stopFlywheel() {
-            leftFlywheel.setVelocity(0);
-            rightFlywheel.setVelocity(0);
         }
     }
 }

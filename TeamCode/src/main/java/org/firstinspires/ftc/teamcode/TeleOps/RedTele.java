@@ -38,7 +38,7 @@ public class RedTele extends OpMode {
     public boolean lastLeftTriggeredPressed = false;
     private boolean last2LT = false;
 
-    private static final double TICKS_PER_REV = 537.6;
+    private static final double TICKS_PER_REV = 28;
 
     // ================= SHOOTER =================
     private DcMotorEx leftFlywheel, rightFlywheel;
@@ -60,6 +60,8 @@ public class RedTele extends OpMode {
 
     private ServoGroup motifServos;
     private boolean motifButtonPressedLast = false;
+    private boolean lastFlywheelTrigger = false;
+    private boolean lastIntakeTrigger = false;
 
 
     @Override
@@ -151,14 +153,21 @@ public class RedTele extends OpMode {
 
 
         // ================= FLYWHEEL =================
-        boolean rtPressed = gamepad2.right_trigger > 0.5;
-        if (rtPressed && !lastRightTriggeredPressed) flywheelToggle = !flywheelToggle;
-        lastRightTriggeredPressed = rtPressed;
-        setFlywheelPercent(0.4);
+        boolean flywheelPressed = gamepad2.right_trigger > 0.5;
+        if (flywheelPressed && !lastFlywheelTrigger) {
+            flywheelToggle = !flywheelToggle;
+        }
+        lastFlywheelTrigger = flywheelPressed;
+
+        if (flywheelToggle) {
+            setFlywheelRPM(3850);
+        } else {
+            stopFlywheel();
+        }
 
 
         // ================= FLIPPERS =================
-        servo1.setPosition(gamepad1.b ? 0.45 : 0);
+        servo1.setPosition(gamepad1.b ? 0 : 0.45);
         if (gamepad1.a) {
             servo2.setPosition(0);
         } else {
@@ -166,24 +175,20 @@ public class RedTele extends OpMode {
         }
         servo3.setPosition(gamepad1.x ? 0.79 : 0);
         // ================= INTAKE AND BACKSPIN =================
-        boolean leftTriggerPressed = gamepad1.left_trigger > 0.5;
-        boolean rightTriggerPressed = gamepad1.right_trigger > 0.5;
+        boolean intakePressed = gamepad1.left_trigger > 0.5;
+        boolean backspinPressed = gamepad1.right_trigger > 0.5;
 
-// Toggle intake with left trigger
-        if (leftTriggerPressed && !lastLeftTriggeredPressed) intakeToggle = !intakeToggle;
-        lastLeftTriggeredPressed = leftTriggerPressed;
+        if (intakePressed && !lastIntakeTrigger) {
+            intakeToggle = !intakeToggle;
+        }
+        lastIntakeTrigger = intakePressed;
 
-// Toggle backspin with right trigger
-        if (rightTriggerPressed && !lastRightTriggeredPressed) backspinToggle = !backspinToggle;
-        lastRightTriggeredPressed = rightTriggerPressed;
-
-// Set motor power based on toggles
-        if (intakeToggle) {
-            intake.setPower(1);       // Intake spins forward
-        } else if (backspinToggle) {
-            intake.setPower(-1);      // Backspin spins backward
+        if (backspinPressed) {
+            intake.setPower(1);
+        } else if (intakeToggle) {
+            intake.setPower(-1);
         } else {
-            intake.setPower(0);       // Stop motor if neither
+            intake.setPower(0);
         }
 
 // Set intake power based on toggles
@@ -201,6 +206,7 @@ public class RedTele extends OpMode {
 
     private void setFlywheelRPM(double rpm) {
         double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
+        leftFlywheel.setVelocityPIDFCoefficients(0.022,0,0,13.6);
         leftFlywheel.setVelocity(ticksPerSecond);
         rightFlywheel.setVelocity(ticksPerSecond);
     }
