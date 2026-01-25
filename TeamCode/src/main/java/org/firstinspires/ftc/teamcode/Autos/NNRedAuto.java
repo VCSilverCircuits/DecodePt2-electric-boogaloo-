@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autos;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -14,13 +14,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
+import org.firstinspires.ftc.teamcode.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Red Auto Shoot")
-public class RedAuto extends OpMode {
+@Autonomous(name = "Weird Auto Red")
+public class NNRedAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;
+    private Timer leaveTimer;
     MecanumConstants mecanumConstants;
 
     private DcMotorEx turret;
@@ -35,13 +37,13 @@ public class RedAuto extends OpMode {
 
     double endPoseY = 93.9813;
     double endPoseX = 95.1028;
-    private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(37));
-    private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(37));
-    private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(0));
-    private final Pose intake1 = new Pose(126, 96, Math.toRadians(0));
-    private final Pose releaseBalls = new Pose(130, 83, Math.toRadians(0));
-    private final Pose intake2Lineup = new Pose(95.15887850467287,65,Math.toRadians(-3));
-    private final Pose intake2 = new Pose(133,65, Math.toRadians(-7));
+    private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(48));
+    private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(28));
+    private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(3));
+    private final Pose intake1 = new Pose(126, 90, Math.toRadians(-15));
+    private final Pose releaseBalls = new Pose(128, 80, Math.toRadians(0));
+    private final Pose intake2Lineup = new Pose(95.1028,65,Math.toRadians(-3));
+    private final Pose intake2 = new Pose(133,58, Math.toRadians(-7));
     private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(-10));
     private final Pose intake3 = new Pose(130,42, Math.toRadians(-3));
     private DcMotorEx leftFlywheel, rightFlywheel;
@@ -106,6 +108,7 @@ public class RedAuto extends OpMode {
 
         // Timer
         pathTimer = new Timer();
+        leaveTimer = new Timer();
 
         // Paths
         paths = new Paths(follower);
@@ -125,6 +128,9 @@ public class RedAuto extends OpMode {
         } else {
             turret.setPower(0);
         }
+        if (leaveTimer.getElapsedTimeSeconds() >= 29){
+            endPoseX = endPoseX -5;
+        }
 
         pathState = paths.autonomousPathUpdate(pathState, robotPose);
 
@@ -133,6 +139,7 @@ public class RedAuto extends OpMode {
         telemetry.addData("Turret Power", power);
         telemetry.addData("Path State", pathState);
         telemetry.addData("shootsFired!!", timesShot);
+        telemetry.addData("leaveTimer", leaveTimer.getElapsedTimeSeconds());
         telemetry.update();
     }
 
@@ -157,33 +164,34 @@ public class RedAuto extends OpMode {
                 .setLinearHeadingInterpolation(endPose.getHeading(), intake1.getHeading()).build();
 
             turnToIntakeToIntake1 = follower.pathBuilder().addPath(new BezierLine(turnToIntake, intake1))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(-3), Math.toRadians(-7)).build();
 
-            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(117.107476635514, 80.23831775700934), releaseBalls))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
+            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(110.107476635514, 80.23831775700934), releaseBalls))
+                .setLinearHeadingInterpolation(Math.toRadians(-7), Math.toRadians(-7)).build();
 
             releaseBallsToEndPose = follower.pathBuilder().addPath(new BezierLine(releaseBalls, endPose))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(-3), Math.toRadians(28)).build();
             endPoseToLineUp = follower.pathBuilder().addPath(new BezierLine(endPose,intake2Lineup))
-                .setLinearHeadingInterpolation(Math.toRadians(37),Math.toRadians(-3)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(28),Math.toRadians(-3)).build();
 
             lineupToIntake2 = follower.pathBuilder().addPath(new BezierLine(intake2Lineup, intake2))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-10)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(-3), Math.toRadians(-15)).build();
 
             intake2ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake2, endPose))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(-3), Math.toRadians(28)).build();
             endPoseToLineup3 = follower.pathBuilder().addPath(new BezierLine(endPose, intake3Lineup))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-7)).build();
             lineup3ToIntake3 = follower.pathBuilder().addPath(new BezierLine(intake3Lineup, intake3))
                 .setLinearHeadingInterpolation(Math.toRadians(0),Math.toRadians(0)).build();
             intake3ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake3, endPose))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(28)).build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
             switch (pathState) {
 
                 case 0: // Start -> Shoot preload
+                    leaveTimer.resetTimer();
                     follow.followPath(startToEnd);
                     follower.setMaxPower(1);
                     setFlywheelRPM(3850);
@@ -200,6 +208,9 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 2: // Shoot
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
+                        endPoseX = endPoseX -5;
+                    }
                     intake.setVelocity(0);
                     if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
                         servo1.setPosition(0);
@@ -214,6 +225,9 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 3:
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
+                        endPoseX = endPoseX -5;
+                    }
                     if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
                         servo2.setPosition(0);
                     }
@@ -225,6 +239,9 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 4:
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
+                        endPoseX = endPoseX -5;
+                    }
                     if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
                         servo3.setPosition(0.76);
                     }
@@ -265,6 +282,18 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 7:
+                    if (pathTimer.getElapsedTimeSeconds() > 3){
+                        intake.setPower(1);
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
+                        follow.followPath(intake1ToReleaseBalls);
+                        follower.setMaxPower(0.7);
+                        pathTimer.resetTimer();
+                        pathState = 8;
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
+                        intake.setPower(1);
+                    }
                     if (follow.atPose(intake1, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 3){
                             intake.setPower(1);
@@ -279,7 +308,13 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 8:
-                    if (follow.atPose(releaseBalls, 2, 2)) {
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
+                        intake.setPower(1);
+                        follower.setMaxPower(1);
+                        follow.followPath(releaseBallsToEndPose);
+                        pathTimer.resetTimer();
+                        pathState = 9;
+                    } else if (follow.atPose(releaseBalls, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(1);
                             follower.setMaxPower(1);
@@ -287,7 +322,7 @@ public class RedAuto extends OpMode {
                             pathTimer.resetTimer();
                             pathState = 9;
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                        if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(-1);
                         }
                     }
@@ -345,7 +380,7 @@ public class RedAuto extends OpMode {
                 case 14:
                     follow.followPath(intake2ToEndPose);
                     pathState = 15;
-                   break;
+                    break;
                 case 15:
                     if (follow.atPose(endPose,2,2) ){
                         pathTimer.resetTimer();
@@ -364,7 +399,7 @@ public class RedAuto extends OpMode {
                         pathTimer.resetTimer();
                         pathState = 18;
                     }
-                        break;
+                    break;
                 case 18:
                     follower.followPath(lineup3ToIntake3);
                     follower.setMaxPower(0.75);

@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.TeleOps;
 
-import static org.firstinspires.ftc.teamcode.RedAuto.MAX_FLYWHEEL_RPM;
+import static org.firstinspires.ftc.teamcode.Autos.RedAuto.MAX_FLYWHEEL_RPM;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -149,7 +149,7 @@ public class RedTele extends OpMode {
         // Current turret angle
 
 
-        turret.setPower((gamepad2.left_stick_x / 5) * 3);
+        turret.setPower((gamepad2.left_stick_x / 5) * 4);
 
 
         // ================= FLYWHEEL =================

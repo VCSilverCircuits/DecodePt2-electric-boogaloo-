@@ -336,7 +336,7 @@ public class BlueAuto extends OpMode {
         }
 
 */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autos;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -352,6 +352,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
+import org.firstinspires.ftc.teamcode.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 
@@ -409,11 +410,11 @@ public class BlueAuto extends OpMode {
     private final Pose startPose = new Pose(flipX(122.0187), 123.8131, Math.toRadians(flipHeading(37)));
     private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(flipHeading(37)));
     private final Pose turnToIntake = new Pose(flipX(90.39252336448597), 89.27101962616824, Math.toRadians(flipHeading(0)));
-    private final Pose intake1 = new Pose(flipX(126), 96, Math.toRadians(flipHeading(0)));
-    private final Pose releaseBalls = new Pose(flipX(130), 83, Math.toRadians(flipHeading(0)));
+    private final Pose intake1 = new Pose(flipX(124), 92, Math.toRadians(flipHeading(-8)));
+    private final Pose releaseBalls = new Pose(flipX(125), 81, Math.toRadians(flipHeading(0)));
     private final Pose intake2Lineup = new Pose(flipX(95.15887850467287),65,Math.toRadians(flipHeading(-3)));
-    private final Pose intake2 = new Pose(flipX(133),65, Math.toRadians(flipHeading(-7)));
-    private final Pose intake3Lineup = new Pose(flipX(4.75700934579439),42,Math.toRadians(flipHeading(-10)));
+    private final Pose intake2 = new Pose(flipX(131),65, Math.toRadians(flipHeading(-7)));
+    private final Pose intake3Lineup = new Pose(flipX(94.75700934579439),42,Math.toRadians(flipHeading(-10)));
     private final Pose intake3 = new Pose(flipX(130),42, Math.toRadians(flipHeading(-3)));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
@@ -504,6 +505,8 @@ public class BlueAuto extends OpMode {
         telemetry.addData("Turret Power", power);
         telemetry.addData("Path State", pathState);
         telemetry.addData("shootsFired!!", timesShot);
+        telemetry.addData("robotX,", robotPose.getX());
+        telemetry.addData("robotY",robotPose.getY());
         telemetry.update();
     }
 
@@ -530,7 +533,7 @@ public class BlueAuto extends OpMode {
             turnToIntakeToIntake1 = follower.pathBuilder().addPath(new BezierLine(turnToIntake, intake1))
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(0))).build();
 
-            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(flipX(117.107476635514), 80.23831775700934), releaseBalls))
+            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(flipX(110), 80.23831775700934), releaseBalls))
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(0))).build();
 
             releaseBallsToEndPose = follower.pathBuilder().addPath(new BezierLine(releaseBalls, endPose))
@@ -556,7 +559,7 @@ public class BlueAuto extends OpMode {
 
                 case 0: // Start -> Shoot preload
                     follow.followPath(startToEnd);
-                    follower.setMaxPower(1);
+                    follower.setMaxPower(.9);
                     setFlywheelRPM(3850);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
@@ -637,7 +640,7 @@ public class BlueAuto extends OpMode {
 
                 case 7:
                     if (follow.atPose(intake1, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                        if (pathTimer.getElapsedTimeSeconds() > 2){
                             intake.setPower(1);
                         }
                         if (pathTimer.getElapsedTimeSeconds() > 1){
@@ -650,7 +653,14 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 8:
-                    if (follow.atPose(releaseBalls, 2, 2)) {
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
+                        intake.setPower(1);
+                        follower.setMaxPower(1);
+                        follow.followPath(releaseBallsToEndPose);
+                        pathTimer.resetTimer();
+                        pathState = 9;
+                    }
+                    if (follow.atPose(releaseBalls, 3, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(1);
                             follower.setMaxPower(1);
@@ -699,6 +709,17 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 13: // Intake 2
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
+                        intake.setPower(1);
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 3){
+                        intake.setPower(-1);
+                        pathTimer.resetTimer();// reset for next state
+                        pathState =14;
+                        follower.setMaxPower(1);
+                        endPoseX = endPoseX - 2;
+                        endPoseY = endPoseY + 2;
+                    }
                     if (follow.atPose(intake2, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 4) {
                             intake.setPower(1);
@@ -762,8 +783,12 @@ public class BlueAuto extends OpMode {
                     pathState = 21;
                     break;
                 case 21:
-                    if (follow.atPose(endPose,2,2)){
+                    if (follow.atPose(endPose,1,1)){
                         pathTimer.resetTimer();
+                        intake.setPower(0);
+                        pathState = 2;
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2){
                         intake.setPower(0);
                         pathState = 2;
                     }
