@@ -95,12 +95,6 @@ public class BlueTele extends OpMode {
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
 
-        motifServos = new ServoGroup(
-            hardwareMap,
-            "frontFlipper", "backFlipper", "leftFlipper",
-            "sensorF1", "sensorB1", "sensorLL"
-        );
-
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(122.0187, 123.8131, Math.toRadians(37))); // example start
@@ -125,15 +119,6 @@ public class BlueTele extends OpMode {
 
     @Override
     public void loop() {
-
-        boolean motifButton = gamepad2.a;
-        if (motifButton && !motifButtonPressedLast) {
-            // start sequence based on stored motif
-            motifServos.startMotif(MatchMotif.getPattern().ordinal() + 21); // 21,22,23 mapping
-        }
-        motifButtonPressedLast = motifButton;
-
-        //motifServos.loop();
 
         double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
         double power = turretController.getTurretPower(currentAngleDeg);

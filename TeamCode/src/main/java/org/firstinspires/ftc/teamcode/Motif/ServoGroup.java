@@ -20,47 +20,76 @@ public class ServoGroup {
     private static final long DELAY_MS = 400;
 
     public ServoGroup(HardwareMap hw,
-                      String servo1, String servo2, String servo3, String sensorF1, String sensorB1, String sensorLL) {
+                      String servo1, String servo2, String servo3) {
         s1 = hw.get(Servo.class, servo1);
         s2 = hw.get(Servo.class, servo2);
         s3 = hw.get(Servo.class, servo3);
     }
 
     /**
-     * Build servo firing order from motif + sensor colors
+     * Build servo firing order from motif + latched sensor colors
      */
-    public void startMotif(int motifID) {
-        // fallback
-       /* if (motifID == 21) { // GPP
-            sequence = java.util.List.of(servo1, servo2, servo3);
-        } else if (motifID == 22) { // PGP
-            sequence = java.util.List.of(servo2, servo1, servo3);
-        } else if (motifID == 23) { // PPG
-            sequence = java.util.List.of(servo3, servo1, servo2);
-        } else {
-            sequence = java.util.List.of(servo1, servo2, servo3);
+    public void startMotif(MatchMotif.MotifPattern motif, ColorSensor1Test sensors) {
+
+        firingOrder.clear();
+
+        // Map sensors to servos
+        ColorSensor1Test.DetectedColor[] sensorColors = new ColorSensor1Test.DetectedColor[]{
+            sensors.getS1(), // s1
+            sensors.getS2(), // s2
+            sensors.getS3()  // s3
+        };
+
+        Servo[] servos = new Servo[]{s1, s2, s3};
+
+        // Build the sequence according to motif
+        ColorSensor1Test.DetectedColor[] motifColors = new ColorSensor1Test.DetectedColor[3];
+
+        switch (motif) {
+            case GPP: // Green, Purple, Purple
+                motifColors[0] = ColorSensor1Test.DetectedColor.GREEN;
+                motifColors[1] = ColorSensor1Test.DetectedColor.PURPLE;
+                motifColors[2] = ColorSensor1Test.DetectedColor.PURPLE;
+                break;
+            case PGP: // Purple, Green, Purple
+                motifColors[0] = ColorSensor1Test.DetectedColor.PURPLE;
+                motifColors[1] = ColorSensor1Test.DetectedColor.GREEN;
+                motifColors[2] = ColorSensor1Test.DetectedColor.PURPLE;
+                break;
+            case PPG: // Purple, Purple, Green
+                motifColors[0] = ColorSensor1Test.DetectedColor.PURPLE;
+                motifColors[1] = ColorSensor1Test.DetectedColor.PURPLE;
+                motifColors[2] = ColorSensor1Test.DetectedColor.GREEN;
+                break;
+            default:
+                // fallback: just fire in sensor order
+                firingOrder.add(s1);
+                firingOrder.add(s2);
+                firingOrder.add(s3);
+                this.index = 0;
+                this.running = true;
+                this.lastTime = System.currentTimeMillis();
+                return;
         }
+
+        // For each color in motif, find the servo whose sensor matches it
+        for (ColorSensor1Test.DetectedColor c : motifColors) {
+            for (int i = 0; i < sensorColors.length; i++) {
+                if (sensorColors[i] == c) {
+                    firingOrder.add(servos[i]);
+                    break; // move to next motif color
+                }
+            }
+        }
+
         index = 0;
         running = true;
         lastTime = System.currentTimeMillis();
     }
 
-    private void addColor(MatchMotif.MotifPattern motif,
-                          ColorSensor1Test sensors,
-                          ColorSensor1Test.DetectedColor color) {
-
-        int count = motif == MatchMotif.MotifPattern.GPP && color == ColorSensor1Test.DetectedColor.PURPLE ? 2 :
-            motif == MatchMotif.MotifPattern.PGP ? 1 :
-                motif == MatchMotif.MotifPattern.PPG && color == ColorSensor1Test.DetectedColor.PURPLE ? 2 : 1;
-
-        for (int i = 0; i < count; i++) {
-            if (sensors.getS1() == color) firingOrder.add(s1);
-            else if (sensors.getS2() == color) firingOrder.add(s2);
-            else if (sensors.getS3() == color) firingOrder.add(s3);
-        }
-    }
-
-
+    /**
+     * Call repeatedly in loop to fire servos
+     */
     public void loop() {
         if (!running || index >= firingOrder.size()) return;
 
@@ -90,6 +119,5 @@ public class ServoGroup {
         s1.setPosition(0);
         s2.setPosition(0);
         s3.setPosition(0);
-    }*/
     }
 }
