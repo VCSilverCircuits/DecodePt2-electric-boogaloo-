@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class ColorSensor1Test {
+public class ColorSensors {
 
     private NormalizedColorSensor sensor1, sensor2, sensor3;
 

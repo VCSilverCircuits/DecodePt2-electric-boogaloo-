@@ -12,18 +12,15 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
-import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensor1Test;
+import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.DualMotor;
-import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Red TeleOp")
 public class RedTele extends OpMode {
-    ColorSensor1Test colorSensor1Test;
+    ColorSensors colorSensor1Test;
     AprilTagTurretControllerRed turretController;
-    private NormalizedColorSensor sensor1, sensor2, sensor3;
-
 
     // ================= DRIVE =================
     private Follower follower;

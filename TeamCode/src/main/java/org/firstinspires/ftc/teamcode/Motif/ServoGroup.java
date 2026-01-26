@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.Motif;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensor1Test;
+import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,106 +12,103 @@ public class ServoGroup {
     private final Servo s1, s2, s3;
     private final List<Servo> firingOrder = new ArrayList<>();
 
-    private int index = 0;
+    private int index = 0;           // current servo in sequence
+    private boolean servoUp = false; // is the current servo up?
+    private long lastTime = 0;       // last time we moved a servo
     private boolean running = false;
-    private boolean servoUp = false;
-    private long lastTime = 0;
 
-    private static final long DELAY_MS = 400;
+    // Timing constants
+    private static final long UP_DURATION_MS = 300;   // how long servo stays up
+    private static final long DOWN_DELAY_MS = 400;    // wait after servo goes down before next
 
     public ServoGroup(HardwareMap hw,
                       String servo1, String servo2, String servo3) {
         s1 = hw.get(Servo.class, servo1);
         s2 = hw.get(Servo.class, servo2);
         s3 = hw.get(Servo.class, servo3);
+
+        // Make sure all servos start down
+        s1.setPosition(0);
+        s2.setPosition(0);
+        s3.setPosition(0);
     }
 
     /**
-     * Build servo firing order from motif + latched sensor colors
+     * Build servo firing order from motif + sensor colors
      */
-    public void startMotif(MatchMotif.MotifPattern motif, ColorSensor1Test sensors) {
-
+    public void startMotif(MatchMotif.MotifPattern motif, ColorSensors sensors) {
         firingOrder.clear();
-
-        // Map sensors to servos
-        ColorSensor1Test.DetectedColor[] sensorColors = new ColorSensor1Test.DetectedColor[]{
-            sensors.getS1(), // s1
-            sensors.getS2(), // s2
-            sensors.getS3()  // s3
-        };
-
-        Servo[] servos = new Servo[]{s1, s2, s3};
-
-        // Build the sequence according to motif
-        ColorSensor1Test.DetectedColor[] motifColors = new ColorSensor1Test.DetectedColor[3];
-
-        switch (motif) {
-            case GPP: // Green, Purple, Purple
-                motifColors[0] = ColorSensor1Test.DetectedColor.GREEN;
-                motifColors[1] = ColorSensor1Test.DetectedColor.PURPLE;
-                motifColors[2] = ColorSensor1Test.DetectedColor.PURPLE;
-                break;
-            case PGP: // Purple, Green, Purple
-                motifColors[0] = ColorSensor1Test.DetectedColor.PURPLE;
-                motifColors[1] = ColorSensor1Test.DetectedColor.GREEN;
-                motifColors[2] = ColorSensor1Test.DetectedColor.PURPLE;
-                break;
-            case PPG: // Purple, Purple, Green
-                motifColors[0] = ColorSensor1Test.DetectedColor.PURPLE;
-                motifColors[1] = ColorSensor1Test.DetectedColor.PURPLE;
-                motifColors[2] = ColorSensor1Test.DetectedColor.GREEN;
-                break;
-            default:
-                // fallback: just fire in sensor order
-                firingOrder.add(s1);
-                firingOrder.add(s2);
-                firingOrder.add(s3);
-                this.index = 0;
-                this.running = true;
-                this.lastTime = System.currentTimeMillis();
-                return;
-        }
-
-        // For each color in motif, find the servo whose sensor matches it
-        for (ColorSensor1Test.DetectedColor c : motifColors) {
-            for (int i = 0; i < sensorColors.length; i++) {
-                if (sensorColors[i] == c) {
-                    firingOrder.add(servos[i]);
-                    break; // move to next motif color
-                }
-            }
-        }
-
         index = 0;
         running = true;
+        servoUp = false;
         lastTime = System.currentTimeMillis();
+
+        // Add servos based on motif pattern and detected colors
+        addColor(motif, sensors, ColorSensors.DetectedColor.GREEN);
+        addColor(motif, sensors, ColorSensors.DetectedColor.PURPLE);
     }
 
     /**
-     * Call repeatedly in loop to fire servos
+     * Add servos corresponding to a color in the motif
+     */
+    private void addColor(MatchMotif.MotifPattern motif,
+                          ColorSensors sensors,
+                          ColorSensors.DetectedColor color) {
+
+        int count = 1;
+        switch (motif) {
+            case GPP:
+                if (color == ColorSensors.DetectedColor.PURPLE) count = 2;
+                break;
+            case PGP:
+                count = 1; // one green and two purples handled by loop
+                break;
+            case PPG:
+                if (color == ColorSensors.DetectedColor.PURPLE) count = 2;
+                break;
+            default:
+                count = 1;
+        }
+
+        for (int i = 0; i < count; i++) {
+            if (sensors.getS1() == color) firingOrder.add(s1);
+            else if (sensors.getS2() == color) firingOrder.add(s2);
+            else if (sensors.getS3() == color) firingOrder.add(s3);
+        }
+    }
+
+    /**
+     * Call this repeatedly in loop() to handle firing sequence
      */
     public void loop() {
         if (!running || index >= firingOrder.size()) return;
 
         long now = System.currentTimeMillis();
-        if (now - lastTime < DELAY_MS) return;
 
         Servo current = firingOrder.get(index);
 
-        if (!servoUp) {
-            current.setPosition(1);
-            servoUp = true;
+        if (servoUp) {
+            // Servo is currently up
+            if (now - lastTime >= UP_DURATION_MS) {
+                current.setPosition(0); // move down
+                servoUp = false;
+                lastTime = now;
+                index++; // move to next servo after down
+            }
         } else {
-            current.setPosition(0);
-            servoUp = false;
-            index++;
+            // Servo is currently down
+            if (now - lastTime >= DOWN_DELAY_MS) {
+                if (index < firingOrder.size()) {
+                    current.setPosition(1); // move up
+                    servoUp = true;
+                    lastTime = now;
+                }
+            }
         }
-
-        lastTime = now;
     }
 
     public boolean isRunning() {
-        return running;
+        return running && index < firingOrder.size();
     }
 
     public void stop() {
@@ -119,5 +116,8 @@ public class ServoGroup {
         s1.setPosition(0);
         s2.setPosition(0);
         s3.setPosition(0);
+        firingOrder.clear();
+        index = 0;
+        servoUp = false;
     }
 }
