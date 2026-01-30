@@ -19,7 +19,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Red TeleOp")
 public class RedTele extends OpMode {
-    ColorSensors colorSensor1Test;
     AprilTagTurretControllerRed turretController;
 
     // ================= DRIVE =================

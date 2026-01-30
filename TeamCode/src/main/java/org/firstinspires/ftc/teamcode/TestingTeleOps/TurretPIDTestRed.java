@@ -61,9 +61,7 @@ public class TurretPIDTestRed extends OpMode {
 
         // ================= MODE TOGGLE =================
         if (gamepad2.a && !lastA) {
-            mode = (mode == Mode.ENCODER_ONLY)
-                ? Mode.VISION_TARGET
-                : Mode.ENCODER_ONLY;
+            mode = (mode == Mode.ENCODER_ONLY) ? Mode.VISION_TARGET : Mode.ENCODER_ONLY;
             integralSum = 0;
         }
         lastA = gamepad2.a;
@@ -82,12 +80,10 @@ public class TurretPIDTestRed extends OpMode {
         double step =
             selectedTerm == Term.P ? 0.001 :
                 selectedTerm == Term.D ? 0.0001 :
-                    selectedTerm == Term.I ? 0.0001 :
-                        0.001;
+                    selectedTerm == Term.I ? 0.0001 : 0.001;
 
         if (gamepad2.right_bumper && !lastRB) adjustTerm(step);
         if (gamepad2.left_bumper && !lastLB) adjustTerm(-step);
-
         lastRB = gamepad2.right_bumper;
         lastLB = gamepad2.left_bumper;
 
@@ -98,42 +94,44 @@ public class TurretPIDTestRed extends OpMode {
         lastX = gamepad2.x;
 
         // ================= CURRENT STATE =================
-        double currentAngleDeg =
-            turret.getCurrentPosition() * DEG_PER_TICK;
+        double currentAngleDeg = turret.getCurrentPosition() * DEG_PER_TICK;
 
         // ================= TARGET LOGIC =================
-        if (mode == Mode.VISION_TARGET) {
-            // Vision PID updates target angle ONLY
-            targetAngleDeg =
-                visionController.getTargetAngle(currentAngleDeg);
-        }
+        double targetAngleDegTemp;
+        double minAngle, maxAngle;
 
         if (mode == Mode.ENCODER_ONLY) {
             long now = System.currentTimeMillis();
-
-            // check if we should move to next step
             if (now - lastStepTime > STEP_DURATION_MS) {
                 stepIndex = (stepIndex + 1) % testAngles.length;
                 lastStepTime = now;
             }
+            targetAngleDegTemp = testAngles[stepIndex];
 
-            targetAngleDeg = testAngles[stepIndex];
+            // Encoder-only range (safe small range for tuning)
+            minAngle = -60;
+            maxAngle = 60;
+        } else { // VISION_TARGET
+            targetAngleDegTemp = visionController.getTargetAngle(currentAngleDeg);
+
+            // Vision mode range (full sweep)
+            minAngle = -90;
+            maxAngle = 90;
         }
 
-        // ================= ENCODER PID (ALWAYS RUNS) =================
+        // Clamp target to its mode-specific range
+        targetAngleDeg = Math.max(minAngle, Math.min(maxAngle, targetAngleDegTemp));
+
+        // ================= ENCODER PID =================
         double error = targetAngleDeg - currentAngleDeg;
         integralSum += error;
         integralSum = Math.max(-200, Math.min(200, integralSum)); // anti-windup
-
         double derivative = error - lastError;
         lastError = error;
 
-        double power =
-            kP * error +
-                kI * integralSum +
-                kD * derivative +
-                kF * Math.signum(error);
+        double power = kP * error + kI * integralSum + kD * derivative + kF * Math.signum(error);
 
+        // Optional: clamp power to motor range (can increase for testing)
         power = Math.max(-0.4, Math.min(0.4, power));
         turret.setPower(power);
 
@@ -152,9 +150,12 @@ public class TurretPIDTestRed extends OpMode {
         telemetry.addData("Current (deg)", currentAngleDeg);
         telemetry.addData("Target (deg)", targetAngleDeg);
         telemetry.addData("Error (deg)", error);
+        telemetry.addData("Min/Max", "[" + minAngle + " / " + maxAngle + "]");
         telemetry.addData("Power", power);
+        telemetry.addData("Step Index", stepIndex);
         telemetry.update();
     }
+
 
     private void adjustTerm(double delta) {
         switch (selectedTerm) {

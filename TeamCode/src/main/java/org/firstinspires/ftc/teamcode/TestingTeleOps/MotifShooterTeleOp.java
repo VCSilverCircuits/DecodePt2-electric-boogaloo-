@@ -23,10 +23,11 @@ public class MotifShooterTeleOp extends LinearOpMode {
 
         servos = new ServoGroup(
             hardwareMap,
-            "servo1", "servo2", "servo3"
+            "frontFlipper", "backFlipper", "leftFlipper"
         );
 
         telemetry.addLine("Ready. Press 'A' to fire sequence.");
+
         telemetry.update();
 
         waitForStart();
@@ -48,7 +49,7 @@ public class MotifShooterTeleOp extends LinearOpMode {
             // Run the servo sequence if active
             if (servos.isRunning()) {
                 servos.loop();
-                telemetry.addData("Firing servo index", getServoIndex());
+                telemetry.addData("Firing servo index", servos.getIndex());
             } else if (isFiring) {
                 // Sequence finished, reset for next intake
                 servos.stop();
@@ -56,7 +57,13 @@ public class MotifShooterTeleOp extends LinearOpMode {
                 isFiring = false;
                 telemetry.addLine("Sequence complete. Ready to fire again.");
             }
-
+            telemetry.addData("ServoGroup running", servos.isRunning());
+            telemetry.addData("Current index", servos.getIndex());
+            telemetry.addData("Sequence length", servos.getSequenceLength());
+            telemetry.addData("Motif", MatchMotif.getPattern());
+            telemetry.addData("S1 color", sensors.getS1());
+            telemetry.addData("S2 color", sensors.getS2());
+            telemetry.addData("S3 color", sensors.getS3());
             telemetry.update();
         }
 
@@ -65,13 +72,4 @@ public class MotifShooterTeleOp extends LinearOpMode {
     }
 
     // Helper to show which servo is currently firing
-    private int getServoIndex() {
-        try {
-            java.lang.reflect.Field field = ServoGroup.class.getDeclaredField("index");
-            field.setAccessible(true);
-            return field.getInt(servos);
-        } catch (Exception e) {
-            return -1;
-        }
-    }
 }

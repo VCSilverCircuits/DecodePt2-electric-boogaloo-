@@ -2,17 +2,14 @@ package org.firstinspires.ftc.teamcode.TestingAutos;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.teamcode.Motif.MotifDetector;
 import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 
 @Autonomous(name = "MotifScannerAuto")
 public class MotifScannerAuto extends LinearOpMode {
 
-    private Limelight3A limelight;
     private MotifDetector detector;
     private final ElapsedTime timer = new ElapsedTime();
 
@@ -22,10 +19,15 @@ public class MotifScannerAuto extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        // Initialize Limelight
-        detector = new MotifDetector(limelight);
+        // 🔥 HARD RESET — must happen before anything else
+        MatchMotif.reset();
+
+        // Init detector AFTER reset
+        detector = new MotifDetector(hardwareMap);
+        detector.reset();
 
         telemetry.addLine("Initializing...");
+        telemetry.addData("Motif after reset", MatchMotif.getPattern());
         telemetry.update();
 
         // Wait for start
@@ -33,13 +35,17 @@ public class MotifScannerAuto extends LinearOpMode {
 
         telemetry.addLine("Scanning for motif...");
         telemetry.update();
+
         timer.reset();
 
         // Loop until motif detected or timeout
-        while (opModeIsActive() && MatchMotif.getPattern() == MatchMotif.MotifPattern.UNKNOWN) {
+        while (opModeIsActive()
+            && MatchMotif.getPattern() == MatchMotif.MotifPattern.UNKNOWN) {
+
             detector.update();
 
             telemetry.addData("Detected Motif", MatchMotif.getPattern());
+            telemetry.addData("Time", timer.seconds());
             telemetry.update();
 
             if (timer.seconds() > TIMEOUT) {
@@ -53,6 +59,6 @@ public class MotifScannerAuto extends LinearOpMode {
         telemetry.addLine("Autonomous complete. Ready for TeleOp.");
         telemetry.update();
 
-        sleep(1000); // optional short pause before exit
+        sleep(1000); // optional pause before exit
     }
 }
