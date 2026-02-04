@@ -10,7 +10,6 @@ import java.util.List;
 public class MotifDetector {
 
     private final Limelight3A limelight;
-    private boolean detected = false;
 
     private static final int GPP_ID = 21;
     private static final int PGP_ID = 22;
@@ -21,34 +20,36 @@ public class MotifDetector {
         limelight.pipelineSwitch(0);
         limelight.start();
     }
-    public void reset() {
-        detected = false;
-    }
-
 
     public void update() {
-        if (detected) return;
-
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid()) return;
 
         List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
 
+        if (tags.isEmpty()) {
+            MatchMotif.setPattern(MatchMotif.MotifPattern.UNKNOWN);
+            return;
+        }
+
         for (LLResultTypes.FiducialResult tag : tags) {
-            switch (tag.getFiducialId()) {
+            int id = tag.getFiducialId();
+            System.out.println("Detected tag ID: " + id); // Debug log
+
+            switch (id) {
                 case GPP_ID:
                     MatchMotif.setPattern(MatchMotif.MotifPattern.GPP);
-                    detected = true;
                     return;
                 case PGP_ID:
                     MatchMotif.setPattern(MatchMotif.MotifPattern.PGP);
-                    detected = true;
                     return;
                 case PPG_ID:
                     MatchMotif.setPattern(MatchMotif.MotifPattern.PPG);
-                    detected = true;
                     return;
+                default:
+                    MatchMotif.setPattern(MatchMotif.MotifPattern.UNKNOWN);
             }
         }
     }
+
 }

@@ -24,7 +24,6 @@ public class MotifScannerAuto extends LinearOpMode {
 
         // Init detector AFTER reset
         detector = new MotifDetector(hardwareMap);
-        detector.reset();
 
         telemetry.addLine("Initializing...");
         telemetry.addData("Motif after reset", MatchMotif.getPattern());

@@ -14,13 +14,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.DualMotor;
+import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Red TeleOp")
 public class RedTele extends OpMode {
     AprilTagTurretControllerRed turretController;
-
+    private ColorSensors sensors;
+    private ServoGroup servos;
+    private boolean isFiring = false;
     // ================= DRIVE =================
     private Follower follower;
 
@@ -45,9 +48,17 @@ public class RedTele extends OpMode {
     DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
     private boolean flywheelToggle;
 
+    // ================= FLYWHEEL SPEED CONTROL =================
+    private static final double BASE_FLYWHEEL_RPM = 3850;
+    private static final double BOOST_FLYWHEEL_RPM = 6000; // adjust as needed
+
+    private boolean lastDpadUp = false;
+    private boolean lastDpadDown = false;
+
+
 
     // ================= FLIPPERS =================
-    private Servo servo1, servo2, servo3;
+    private Servo servo1, servo2, servo3, servo4;
 
     // ================= INTAKE =================
     private DcMotorEx intake;
@@ -90,6 +101,7 @@ public class RedTele extends OpMode {
         servo1 = hardwareMap.get(Servo.class, "frontFlipper");
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
+        servo4 = hardwareMap.get(Servo.class, "stopper");
 
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
@@ -97,8 +109,8 @@ public class RedTele extends OpMode {
         follower.update();
 
         // --- hood start ---
-        hoodServo.setPosition(hoodPosition);
-        servo2.setPosition(1);
+        hoodServo.setPosition(0);
+        servo2.setPosition(0);
 
         turretController = new AprilTagTurretControllerRed(hardwareMap);
         turretController.resetController();
@@ -142,20 +154,49 @@ public class RedTele extends OpMode {
         lastFlywheelTrigger = flywheelPressed;
 
         if (flywheelToggle) {
-            setFlywheelRPM(3850);
+
+            // Edge detection for dpad
+            boolean dpadUp = gamepad2.dpad_up;
+            boolean dpadDown = gamepad2.dpad_down;
+
+            if (dpadUp && !lastDpadUp) {
+                targetRPM = BOOST_FLYWHEEL_RPM;
+                hoodServo.setPosition(hoodPosition);
+            }
+
+            if (dpadDown && !lastDpadDown) {
+                targetRPM = BASE_FLYWHEEL_RPM;
+            }
+
+            lastDpadUp = dpadUp;
+            lastDpadDown = dpadDown;
+
+            setFlywheelRPM(targetRPM);
+
         } else {
             stopFlywheel();
+            targetRPM = BASE_FLYWHEEL_RPM; // reset for next time
         }
 
 
         // ================= FLIPPERS =================
-        servo1.setPosition(gamepad1.b ? 0 : 0.45);
+        servo1.setPosition(gamepad1.b ? 1 : 0);
         if (gamepad1.a) {
-            servo2.setPosition(0);
-        } else {
             servo2.setPosition(1);
+        } else {
+            servo2.setPosition(0);
         }
-        servo3.setPosition(gamepad1.x ? 0.79 : 0);
+        servo3.setPosition(gamepad1.x ? 1 : 0);
+        if (gamepad1.y && !isFiring) {
+            // Latch current colors
+            sensors.reset(); // clear previous latches
+            sensors.update();
+
+            // Start servo sequence based on motif + current sensor colors
+            servos.startMotif(MatchMotif.getPattern(), sensors);
+
+            isFiring = true;
+        }
         // ================= INTAKE AND BACKSPIN =================
         boolean intakePressed = gamepad1.left_trigger > 0.5;
         boolean backspinPressed = gamepad1.right_trigger > 0.5;

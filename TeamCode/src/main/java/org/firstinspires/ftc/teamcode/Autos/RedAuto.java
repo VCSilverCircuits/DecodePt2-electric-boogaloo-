@@ -43,13 +43,13 @@ public class RedAuto extends OpMode {
     private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(0));
     private final Pose intake1 = new Pose(126, 96, Math.toRadians(0));
     private final Pose releaseBalls = new Pose(130, 83, Math.toRadians(0));
-    private final Pose intake2Lineup = new Pose(95.15887850467287,65,Math.toRadians(-3));
-    private final Pose intake2 = new Pose(133,65, Math.toRadians(-7));
-    private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(-10));
+    private final Pose intake2Lineup = new Pose(95.15887850467287,64,Math.toRadians(-3));
+    private final Pose intake2 = new Pose(132,62, Math.toRadians(-7));
+    private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(0));
     private final Pose intake3 = new Pose(132,42, Math.toRadians(-3));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
-    private Servo servo1, servo2, servo3;
+    private Servo servo1, servo2, servo3, servo4;
     private DcMotorEx intake;
     private boolean lastFlywheelTrigger = false;
     private boolean lastIntakeTrigger = false;
@@ -99,8 +99,9 @@ public class RedAuto extends OpMode {
         servo1 = hardwareMap.get(Servo.class, "frontFlipper");
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
-        servo1.setPosition(0.45);
-        servo2.setPosition(1);
+        servo4 = hardwareMap.get(Servo.class, "stopper");
+        servo1.setPosition(0);
+        servo2.setPosition(0);
         servo3.setPosition(0);
 
         // Intake
@@ -128,9 +129,6 @@ public class RedAuto extends OpMode {
             turret.setPower(power);
         } else {
             turret.setPower(0);
-        }
-        if (leaveTimer.getElapsedTimeSeconds() >= 29){
-            endPoseX = endPoseX -5;
         }
 
         pathState = paths.autonomousPathUpdate(pathState, robotPose);
@@ -167,7 +165,7 @@ public class RedAuto extends OpMode {
             turnToIntakeToIntake1 = follower.pathBuilder().addPath(new BezierLine(turnToIntake, intake1))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
 
-            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(117.107476635514, 80.23831775700934), releaseBalls))
+            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(115.107476635514, 80.23831775700934), releaseBalls))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
 
             releaseBallsToEndPose = follower.pathBuilder().addPath(new BezierLine(releaseBalls, endPose))
@@ -176,12 +174,12 @@ public class RedAuto extends OpMode {
                 .setLinearHeadingInterpolation(Math.toRadians(37),Math.toRadians(-3)).build();
 
             lineupToIntake2 = follower.pathBuilder().addPath(new BezierLine(intake2Lineup, intake2))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-10)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-3)).build();
 
-            intake2ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake2, endPose))
+            intake2ToEndPose = follower.pathBuilder().addPath(new BezierCurve(intake2, new Pose(98.01869158878506,57.25233644859814),endPose))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37)).build();
             endPoseToLineup3 = follower.pathBuilder().addPath(new BezierLine(endPose, intake3Lineup))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-7)).build();
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
             lineup3ToIntake3 = follower.pathBuilder().addPath(new BezierLine(intake3Lineup, intake3))
                 .setLinearHeadingInterpolation(Math.toRadians(0),Math.toRadians(0)).build();
             intake3ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake3, endPose))
@@ -195,7 +193,7 @@ public class RedAuto extends OpMode {
                     leaveTimer.resetTimer();
                     follow.followPath(startToEnd);
                     follower.setMaxPower(1);
-                    setFlywheelRPM(3850);
+                    setFlywheelRPM(3550);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     pathState = 1;
@@ -209,16 +207,18 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 2: // Shoot
-                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
-                        endPoseX = endPoseX -5;
+                    intake.setPower(1);
+                    servo4.setPosition(1);
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
                     }
                     intake.setVelocity(0);
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo1.setPosition(0);
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
+                        servo1.setPosition(1);
                         //0
                     }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
-                        servo1.setPosition(0.45);
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
+                        servo1.setPosition(0);
                         //0.45
                         pathTimer.resetTimer();
                         pathState = 3;
@@ -226,30 +226,31 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 3:
-                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
-                        endPoseX = endPoseX -5;
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
                     }
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo2.setPosition(0);
-                    }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
                         servo2.setPosition(1);
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
+                        servo2.setPosition(0);
                         pathTimer.resetTimer();
                         pathState = 4;
                     }
                     break;
 
                 case 4:
-                    if (leaveTimer.getElapsedTimeSeconds() >= 29){
-                        endPoseX = endPoseX -5;
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
                     }
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo3.setPosition(0.76);
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
+                        servo3.setPosition(1);
                     }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
                         servo3.setPosition(0);
                         pathTimer.resetTimer();
                         intake.setPower(-1);
+                        servo4.setPosition(0);
 
                         // increment timesShot once
                         timesShot++;
@@ -258,10 +259,10 @@ public class RedAuto extends OpMode {
                             pathState = 5; // go to first intake
                         } else if (timesShot == 2) {
                             pathState = 10; // go to second intake
-                        } else if (timesShot == 3){
+                        } else if (timesShot == 3) {
                             pathState = 16; // final state after second round
                         } else {
-                            pathState = 21;
+                            pathState = 22;
                         }
                     }
                     break;
@@ -280,14 +281,31 @@ public class RedAuto extends OpMode {
                         pathTimer.resetTimer();
                         pathState = 7;
                     }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        follower.setMaxPower(0.8);
+                        follow.followPath(turnToIntakeToIntake1);
+                        pathTimer.resetTimer();
+                        pathState = 7;
+                    }
                     break;
 
                 case 7:
                     if (follow.atPose(intake1, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
                             intake.setPower(1);
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 1){
+                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                            follow.followPath(intake1ToReleaseBalls);
+                            follower.setMaxPower(0.7);
+                            pathTimer.resetTimer();
+                            pathState = 8;
+                        }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
+                            intake.setPower(1);
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
                             follow.followPath(intake1ToReleaseBalls);
                             follower.setMaxPower(0.7);
                             pathTimer.resetTimer();
@@ -305,9 +323,16 @@ public class RedAuto extends OpMode {
                             pathTimer.resetTimer();
                             pathState = 9;
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                        if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(-1);
                         }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        intake.setPower(1);
+                        follower.setMaxPower(1);
+                        follow.followPath(releaseBallsToEndPose);
+                        pathTimer.resetTimer();
+                        pathState = 9;
                     }
                     break;
 
@@ -325,16 +350,16 @@ public class RedAuto extends OpMode {
                     break;
                 case 11:
                     comingBack = true;
-                    if (follow.atPose(intake2Lineup,2,2)){
-                        if (comingBack = true){
+                    if (follow.atPose(intake2Lineup, 2, 2)) {
+                        if (comingBack = true) {
                             endPoseX = endPoseX - 3;
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 1.75){
+                        if (pathTimer.getElapsedTimeSeconds() > 1.75) {
                             pathState = 12;
                             pathTimer.resetTimer();
                         }
 
-                    } else if (pathTimer.getElapsedTimeSeconds() > 3){
+                    } else if (pathTimer.getElapsedTimeSeconds() > 2) {
                         pathTimer.resetTimer();
                         pathState = 12;
                     }
@@ -350,24 +375,27 @@ public class RedAuto extends OpMode {
                     break;
 
                 case 13: // Intake 2
-                    if (pathTimer.getElapsedTimeSeconds() > 4){
-                        pathTimer.resetTimer();
-                        intake.setPower(1);
-                        pathState = 14;
-                    }
+                    follower.setMaxPower(1);
                     if (follow.atPose(intake2, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 4) {
-                            intake.setPower(1);
-                        }
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
-                            intake.setPower(-1);
-                            pathTimer.resetTimer();// reset for next state
-                            pathState =14;
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
                         }
-                        follower.setMaxPower(1);
-                        endPoseX = endPoseX + 2;
-                        endPoseY = endPoseY + 2;
+                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                            pathTimer.resetTimer();
+                            pathState = 14;
+                        }
                     }
+                    if (pathTimer.getElapsedTimeSeconds() > 2.5) {
+                        pathState = 14;
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
+                        }
+                    }
+                    follower.setMaxPower(1);
+                    endPoseX = endPoseX + 2;
+                    endPoseY = endPoseY + 2;
                     break;
                 case 14:
                     follow.followPath(intake2ToEndPose);
@@ -406,9 +434,16 @@ public class RedAuto extends OpMode {
                             intake.setPower(1);
                             pathTimer.resetTimer();
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                             pathTimer.resetTimer();
                             pathState = 20;
+                        }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2.5){
+                        pathState = 20;
+                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
                         }
                     }
                     break;
@@ -426,8 +461,12 @@ public class RedAuto extends OpMode {
                     }
                     break;
                 case 22:
+                    follower.setMaxPower(1);
+                    setFlywheelRPM(3800);
                     intake.setPower(0);
-                    requestOpModeStop();
+                    if (leaveTimer.getElapsedTimeSeconds() >= 28){
+                        follower.followPath(endPoseToLineup3);
+                    }
                     break;
             }
             return pathState;
