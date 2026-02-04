@@ -12,9 +12,9 @@ public class AprilTagTurretControllerRed {
     private static final int TARGET_ID = 24;
 
     // ===== PID =====
-    private static final double kP = 0.03;
-    private static final double kD = 0.003;
-    private static final double MAX_POWER = 0.6;
+    private static final double kP = 0.06;
+    private static final double kD = 0.008;
+    private static final double MAX_POWER = 0.8;
     private static final double DEADBAND_DEG = 1.5;
 
     // ===== LIMITS =====
