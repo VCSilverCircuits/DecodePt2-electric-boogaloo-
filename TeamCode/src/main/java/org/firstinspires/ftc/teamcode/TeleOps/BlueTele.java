@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
 import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.DualMotor;
+import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -21,7 +22,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class BlueTele extends OpMode {
     ColorSensors colorSensor1Test;
     AprilTagTurretControllerBlue turretController;
-    private NormalizedColorSensor sensor1, sensor2, sensor3;
+    private ColorSensors sensors;
+    private ServoGroup servos;
+    private boolean isFiring = false;
 
 
     // ================= DRIVE =================
@@ -101,7 +104,7 @@ public class BlueTele extends OpMode {
 
         // --- hood start ---
         hoodServo.setPosition(hoodPosition);
-        servo2.setPosition(1);
+        servo2.setPosition(0);
 
         turretController = new AprilTagTurretControllerBlue(hardwareMap);
         turretController.resetController();
@@ -151,13 +154,22 @@ public class BlueTele extends OpMode {
 
 
         // ================= FLIPPERS =================
-        servo1.setPosition(gamepad1.b ? 0 : 0.45);
-        if (gamepad1.a) {
-            servo2.setPosition(0);
-        } else {
-            servo2.setPosition(1);
+        if(!isFiring) {
+            servo1.setPosition(gamepad1.b ? 1 : 0);
+           servo2.setPosition(gamepad1.a ? 1: 0);
+            servo3.setPosition(gamepad1.x ? 1 : 0);
         }
-        servo3.setPosition(gamepad1.x ? 0.79 : 0);
+        if (gamepad1.y && !isFiring) {
+            // Latch current colors
+            sensors.reset(); // clear previous latches
+            sensors.update();
+
+
+            // Start servo sequence based on motif + current sensor colors
+            servos.startMotif(MatchMotif.getPattern(), sensors);
+
+            isFiring = true;
+        }
         // ================= INTAKE AND BACKSPIN =================
         boolean intakePressed = gamepad1.left_trigger > 0.5;
         boolean backspinPressed = gamepad1.right_trigger > 0.5;

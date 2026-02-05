@@ -17,9 +17,11 @@ public class ServoGroup {
     private long lastTime = 0;
     private boolean running = false;
 
+    private Servo lastAddedServo = null;
+
     // Timing constants
-    private static final long UP_DURATION_MS = 500;
-    private static final long DOWN_DELAY_MS = 500;
+    private static final long UP_DURATION_MS = 250;
+    private static final long DOWN_DELAY_MS = 250;
 
     public ServoGroup(HardwareMap hw,
                       String servo1, String servo2, String servo3) {
@@ -28,12 +30,28 @@ public class ServoGroup {
         s2 = hw.get(Servo.class, servo2);
         s3 = hw.get(Servo.class, servo3);
 
-        stop(); // ensure known state
+        stop();
     }
 
-    /**
-     * Start firing sequence based on motif + latched sensor colors
-     */
+    /* =========================================================
+       🔫 FORCED SEQUENTIAL MODE (s1 → s2 → s3)
+       ========================================================= */
+    public void startSequentialBackUp() {
+        firingOrder.clear();
+        index = 0;
+        servoUp = false;
+        running = true;
+        lastTime = System.currentTimeMillis();
+        lastAddedServo = null;
+
+        addServoSafely(s1);
+        addServoSafely(s2);
+        addServoSafely(s3);
+    }
+
+    /* =========================================================
+       🎼 MOTIF-BASED MODE
+       ========================================================= */
     public void startMotif(MatchMotif.MotifPattern motif, ColorSensors sensors) {
 
         firingOrder.clear();
@@ -41,23 +59,20 @@ public class ServoGroup {
         servoUp = false;
         running = true;
         lastTime = System.currentTimeMillis();
+        lastAddedServo = null;
 
-        // Build firing order explicitly
         buildFiringOrder(motif, sensors);
 
-        // 🚑 Absolute safety: never allow empty sequence
+        // Absolute safety fallback
         if (firingOrder.isEmpty()) {
-            firingOrder.add(s1);
-            firingOrder.add(s2);
-            firingOrder.add(s3);
+            addServoSafely(s1);
+            addServoSafely(s2);
+            addServoSafely(s3);
         }
     }
 
-    /**
-     * Builds firing order in exact motif order
-     */
     private void buildFiringOrder(MatchMotif.MotifPattern motif, ColorSensors sensors) {
-        // Build exact color sequence for this motif
+
         ColorSensors.DetectedColor[] pattern;
 
         switch (motif) {
@@ -82,7 +97,7 @@ public class ServoGroup {
                     ColorSensors.DetectedColor.GREEN
                 };
                 break;
-            default: // UNKNOWN
+            default:
                 pattern = new ColorSensors.DetectedColor[]{
                     ColorSensors.DetectedColor.GREEN,
                     ColorSensors.DetectedColor.PURPLE,
@@ -91,18 +106,32 @@ public class ServoGroup {
                 break;
         }
 
-        // Add servos to firing order according to pattern
         for (ColorSensors.DetectedColor color : pattern) {
-            if (sensors.getS1() == color) firingOrder.add(s1);
-            else if (sensors.getS2() == color) firingOrder.add(s2);
-            else if (sensors.getS3() == color) firingOrder.add(s3);
+            Servo candidate = null;
+
+            if (sensors.getS1() == color) candidate = s1;
+            else if (sensors.getS2() == color) candidate = s2;
+            else if (sensors.getS3() == color) candidate = s3;
+
+            if (candidate != null) {
+                addServoSafely(candidate);
+            }
         }
     }
 
+    /* =========================================================
+       🛡 SAFETY: NO BACK-TO-BACK REPEATS
+       ========================================================= */
+    private void addServoSafely(Servo servo) {
+        if (servo != lastAddedServo) {
+            firingOrder.add(servo);
+            lastAddedServo = servo;
+        }
+    }
 
-    /**
-     * Call repeatedly in TeleOp loop
-     */
+    /* =========================================================
+       ⏱ TIMING LOOP
+       ========================================================= */
     public void loop() {
         if (!running || index >= firingOrder.size()) return;
 
@@ -118,7 +147,7 @@ public class ServoGroup {
             }
         } else {
             if (now - lastTime >= DOWN_DELAY_MS) {
-                current.setPosition(1);
+                current.setPosition(0.8);
                 servoUp = true;
                 lastTime = now;
             }
@@ -142,6 +171,7 @@ public class ServoGroup {
         index = 0;
         servoUp = false;
         firingOrder.clear();
+        lastAddedServo = null;
 
         s1.setPosition(0);
         s2.setPosition(0);

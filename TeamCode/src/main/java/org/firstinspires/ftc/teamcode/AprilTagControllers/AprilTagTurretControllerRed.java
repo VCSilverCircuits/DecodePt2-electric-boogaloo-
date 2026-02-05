@@ -77,8 +77,21 @@ public class AprilTagTurretControllerRed {
         }
 
         // No tag visible → stop turret
+        // ==================== RETURN TO ZERO MODE ====================
         hasLock = false;
-        return 0;
+
+// Error is how far turret is from zero
+        double zeroErrorDeg = -currentTurretAngleDeg;
+
+// Small deadband so it doesn't jitter at zero
+        if (Math.abs(zeroErrorDeg) < DEADBAND_DEG) {
+            resetController(); // clear PID memory once centered
+            return 0;
+        }
+
+// Use same PID to return home
+        return pid(zeroErrorDeg);
+
     }
 
     // ==================== PID ====================
