@@ -1,33 +1,27 @@
 package org.firstinspires.ftc.teamcode.TeleOps;
 
-import static org.firstinspires.ftc.teamcode.Autos.RedAuto.MAX_FLYWHEEL_RPM;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
 import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.DualMotor;
-import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Blue TeleOp")
 public class BlueTele extends OpMode {
-    ColorSensors colorSensor1Test;
     AprilTagTurretControllerBlue turretController;
-    private ColorSensors sensors;
+    ColorSensors sensors;
     private ServoGroup servos;
     private boolean isFiring = false;
-
-
-    // ================= DRIVE =================
+    // =================
+    //DRIVE =================
     private Follower follower;
 
     // ================= TURRET =================
@@ -36,9 +30,6 @@ public class BlueTele extends OpMode {
     private static final double TICKS_PER_MOTOR_REV = 537.6;
     private static final double DEGREES_PER_TICK =
         360.0 / TICKS_PER_MOTOR_REV / BELT_RATIO;
-    public boolean lastRightTriggeredPressed = false;
-    public boolean lastLeftTriggeredPressed = false;
-    private boolean last2LT = false;
 
     private static final double TICKS_PER_REV = 28;
 
@@ -51,9 +42,17 @@ public class BlueTele extends OpMode {
     DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
     private boolean flywheelToggle;
 
+    // ================= FLYWHEEL SPEED CONTROL =================
+    private static final double BASE_FLYWHEEL_RPM = 3850;
+    private static final double BOOST_FLYWHEEL_RPM = 6000; // adjust as needed
+
+    private boolean lastDpadUp = false;
+    private boolean lastDpadDown = false;
+
+
 
     // ================= FLIPPERS =================
-    private Servo servo1, servo2, servo3;
+    private Servo servo1, servo2, servo3, servo4;
 
     // ================= INTAKE =================
     private DcMotorEx intake;
@@ -68,7 +67,13 @@ public class BlueTele extends OpMode {
 
     @Override
     public void init() {
+        sensors = new ColorSensors();
+        sensors.init(hardwareMap);
 
+        servos = new ServoGroup(
+            hardwareMap,
+            "frontFlipper", "backFlipper", "leftFlipper"
+        );
         // --- turret ---
         turret = hardwareMap.get(DcMotorEx.class, "turretRotation");
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -96,6 +101,7 @@ public class BlueTele extends OpMode {
         servo1 = hardwareMap.get(Servo.class, "frontFlipper");
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
+        servo4 = hardwareMap.get(Servo.class, "stopper");
 
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
@@ -103,8 +109,11 @@ public class BlueTele extends OpMode {
         follower.update();
 
         // --- hood start ---
-        hoodServo.setPosition(hoodPosition);
+        hoodServo.setPosition(0);
+        servo1.setPosition(0.1);
         servo2.setPosition(0);
+        servo3.setPosition(0);
+        servo4.setPosition(0);
 
         turretController = new AprilTagTurretControllerBlue(hardwareMap);
         turretController.resetController();
@@ -121,7 +130,8 @@ public class BlueTele extends OpMode {
 
     @Override
     public void loop() {
-
+        //motifServos.loop();
+        servos.loop();
         double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
         double power = turretController.getTurretPower(currentAngleDeg);
         turret.setPower(power);
@@ -147,16 +157,38 @@ public class BlueTele extends OpMode {
         lastFlywheelTrigger = flywheelPressed;
 
         if (flywheelToggle) {
-            setFlywheelRPM(3850);
+
+            // Edge detection for dpad
+            boolean dpadUp = gamepad2.dpad_up;
+            boolean dpadDown = gamepad2.dpad_down;
+
+            if (dpadUp && !lastDpadUp) {
+                targetRPM = BOOST_FLYWHEEL_RPM;
+                hoodServo.setPosition(hoodPosition);
+            }
+
+            if (dpadDown && !lastDpadDown) {
+                targetRPM = BASE_FLYWHEEL_RPM;
+            }
+
+            lastDpadUp = dpadUp;
+            lastDpadDown = dpadDown;
+
+            setFlywheelRPM(targetRPM);
+
         } else {
             stopFlywheel();
+            targetRPM = BASE_FLYWHEEL_RPM; // reset for next time
         }
 
 
         // ================= FLIPPERS =================
-        if(!isFiring) {
-            servo1.setPosition(gamepad1.b ? 1 : 0);
-           servo2.setPosition(gamepad1.a ? 1: 0);
+        if(!isFiring){  servo1.setPosition(gamepad1.b ? 1 : 0);
+            if (gamepad1.a) {
+                servo2.setPosition(1);
+            } else {
+                servo2.setPosition(0);
+            }
             servo3.setPosition(gamepad1.x ? 1 : 0);
         }
         if (gamepad1.y && !isFiring) {
@@ -164,12 +196,17 @@ public class BlueTele extends OpMode {
             sensors.reset(); // clear previous latches
             sensors.update();
 
-
             // Start servo sequence based on motif + current sensor colors
-            servos.startMotif(MatchMotif.getPattern(), sensors);
+            servos.startSequentialBackUp();
 
             isFiring = true;
         }
+        if (!isFiring) {
+            servo4.setPosition(0);
+        } else {
+            servo4.setPosition(0.3);
+        }
+
         // ================= INTAKE AND BACKSPIN =================
         boolean intakePressed = gamepad1.left_trigger > 0.5;
         boolean backspinPressed = gamepad1.right_trigger > 0.5;
@@ -189,10 +226,17 @@ public class BlueTele extends OpMode {
 
 // Set intake power based on toggles
         // ================= TELEMETRY =================
-
+        if (servos.isRunning()) {
+            servos.loop();
+            telemetry.addData("Firing servo index", servos.getIndex());
+        } else if (isFiring) {
+            // Sequence finished, reset for next intake
+            servos.stop();
+            sensors.reset(); // optional: clear previous colors so next update re-latches
+            isFiring = false;
+            telemetry.addLine("Sequence complete. Ready to fire again.");
+        }
         telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Hood Position", hoodPosition);
-        telemetry.addData("servo", servo2.getPosition());
         telemetry.addData("Turret Encoder", turret.getCurrentPosition());
         telemetry.addData("Turret Angle (deg)", currentAngleDeg);
         telemetry.addData("Turret Power", power);
@@ -206,12 +250,6 @@ public class BlueTele extends OpMode {
         leftFlywheel.setVelocity(ticksPerSecond);
         rightFlywheel.setVelocity(ticksPerSecond);
     }
-
-    private void setFlywheelPercent(double percent) {
-        percent = Math.max(0, Math.min(1, percent)); // clamp
-        setFlywheelRPM(MAX_FLYWHEEL_RPM * percent);
-    }
-
     private void stopFlywheel() {
         leftFlywheel.setVelocity(0);
         rightFlywheel.setVelocity(0);
