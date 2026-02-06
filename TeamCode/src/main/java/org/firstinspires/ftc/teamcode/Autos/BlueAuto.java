@@ -361,6 +361,7 @@ public class BlueAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;
+    private Timer leaveTimer;
     MecanumConstants mecanumConstants;
 
     private DcMotorEx turret;
@@ -418,7 +419,7 @@ public class BlueAuto extends OpMode {
     private final Pose intake3 = new Pose(flipX(130),42, Math.toRadians(flipHeading(-3)));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
-    private Servo servo1, servo2, servo3;
+    private Servo servo1, servo2, servo3,servo4;
     private DcMotorEx intake;
     private boolean lastFlywheelTrigger = false;
     private boolean lastIntakeTrigger = false;
@@ -468,9 +469,11 @@ public class BlueAuto extends OpMode {
         servo1 = hardwareMap.get(Servo.class, "frontFlipper");
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
-        servo1.setPosition(0.45);
-        servo2.setPosition(1);
+        servo4 = hardwareMap.get(Servo.class, "stopper");
+        servo1.setPosition(0);
+        servo2.setPosition(0);
         servo3.setPosition(0);
+        servo4.setPosition(0);
 
         // Intake
         intake = hardwareMap.get(DcMotorEx.class, "intake");
@@ -478,6 +481,7 @@ public class BlueAuto extends OpMode {
 
         // Timer
         pathTimer = new Timer();
+        leaveTimer = new Timer();
 
         // Paths
         paths = new Paths(follower);
@@ -563,6 +567,7 @@ public class BlueAuto extends OpMode {
                     setFlywheelRPM(3850);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
+                    leaveTimer.resetTimer();
                     pathState = 1;
                     break;
 
@@ -574,13 +579,18 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 2: // Shoot
+                    intake.setPower(1);
+                    servo4.setPosition(1);
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
+                    }
                     intake.setVelocity(0);
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo1.setPosition(0);
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
+                        servo1.setPosition(1);
                         //0
                     }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
-                        servo1.setPosition(0.45);
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
+                        servo1.setPosition(0);
                         //0.45
                         pathTimer.resetTimer();
                         pathState = 3;
@@ -588,24 +598,31 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 3:
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo2.setPosition(0);
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
                     }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
                         servo2.setPosition(1);
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
+                        servo2.setPosition(0);
                         pathTimer.resetTimer();
                         pathState = 4;
                     }
                     break;
 
                 case 4:
-                    if (pathTimer.getElapsedTimeSeconds() > 0.5 && pathTimer.getElapsedTimeSeconds() < 1) {
-                        servo3.setPosition(0.76);
+                    if (leaveTimer.getElapsedTimeSeconds() >= 29) {
+                        endPoseX = endPoseX - 5;
                     }
-                    if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    if (pathTimer.getElapsedTimeSeconds() > 0.4 && pathTimer.getElapsedTimeSeconds() < 0.8) {
+                        servo3.setPosition(1);
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
                         servo3.setPosition(0);
                         pathTimer.resetTimer();
                         intake.setPower(-1);
+                        servo4.setPosition(0);
 
                         // increment timesShot once
                         timesShot++;
@@ -614,10 +631,10 @@ public class BlueAuto extends OpMode {
                             pathState = 5; // go to first intake
                         } else if (timesShot == 2) {
                             pathState = 10; // go to second intake
-                        } else if (timesShot == 3){
+                        } else if (timesShot == 3) {
                             pathState = 16; // final state after second round
                         } else {
-                            pathState = 21;
+                            pathState = 22;
                         }
                     }
                     break;
@@ -636,14 +653,31 @@ public class BlueAuto extends OpMode {
                         pathTimer.resetTimer();
                         pathState = 7;
                     }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        follower.setMaxPower(0.8);
+                        follow.followPath(turnToIntakeToIntake1);
+                        pathTimer.resetTimer();
+                        pathState = 7;
+                    }
                     break;
 
                 case 7:
                     if (follow.atPose(intake1, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
                             intake.setPower(1);
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 1){
+                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                            follow.followPath(intake1ToReleaseBalls);
+                            follower.setMaxPower(0.7);
+                            pathTimer.resetTimer();
+                            pathState = 8;
+                        }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
+                            intake.setPower(1);
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
                             follow.followPath(intake1ToReleaseBalls);
                             follower.setMaxPower(0.7);
                             pathTimer.resetTimer();
@@ -653,14 +687,7 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 8:
-                    if (pathTimer.getElapsedTimeSeconds() > 2){
-                        intake.setPower(1);
-                        follower.setMaxPower(1);
-                        follow.followPath(releaseBallsToEndPose);
-                        pathTimer.resetTimer();
-                        pathState = 9;
-                    }
-                    if (follow.atPose(releaseBalls, 3, 2)) {
+                    if (follow.atPose(releaseBalls, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(1);
                             follower.setMaxPower(1);
@@ -668,9 +695,16 @@ public class BlueAuto extends OpMode {
                             pathTimer.resetTimer();
                             pathState = 9;
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
+                        if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(-1);
                         }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
+                        intake.setPower(1);
+                        follower.setMaxPower(1);
+                        follow.followPath(releaseBallsToEndPose);
+                        pathTimer.resetTimer();
+                        pathState = 9;
                     }
                     break;
 
@@ -687,13 +721,13 @@ public class BlueAuto extends OpMode {
                     pathState = 11;
                     break;
                 case 11:
-                    if (follow.atPose(intake2Lineup,2,2)){
-                        if (pathTimer.getElapsedTimeSeconds() > 1.75){
+                    if (follow.atPose(intake2Lineup, 2, 2)) {
+                        if (pathTimer.getElapsedTimeSeconds() > 1.75) {
                             pathState = 12;
                             pathTimer.resetTimer();
                         }
 
-                    } else if (pathTimer.getElapsedTimeSeconds() > 3){
+                    } else if (pathTimer.getElapsedTimeSeconds() > 2) {
                         pathTimer.resetTimer();
                         pathState = 12;
                     }
@@ -709,30 +743,27 @@ public class BlueAuto extends OpMode {
                     break;
 
                 case 13: // Intake 2
-                    if (pathTimer.getElapsedTimeSeconds() > 2){
-                        intake.setPower(1);
-                    }
-                    if (pathTimer.getElapsedTimeSeconds() > 3){
-                        intake.setPower(-1);
-                        pathTimer.resetTimer();// reset for next state
-                        pathState =14;
-                        follower.setMaxPower(1);
-                        endPoseX = endPoseX - 2;
-                        endPoseY = endPoseY + 2;
-                    }
+                    follower.setMaxPower(1);
                     if (follow.atPose(intake2, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 4) {
-                            intake.setPower(1);
-                        }
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
-                            intake.setPower(-1);
-                            pathTimer.resetTimer();// reset for next state
-                            pathState =14;
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
                         }
-                        follower.setMaxPower(1);
-                        endPoseX = endPoseX - 2;
-                        endPoseY = endPoseY + 2;
+                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                            pathTimer.resetTimer();
+                            pathState = 14;
+                        }
                     }
+                    if (pathTimer.getElapsedTimeSeconds() > 2.5) {
+                        pathState = 14;
+                        if (pathTimer.getElapsedTimeSeconds() > 3) {
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
+                        }
+                    }
+                    follower.setMaxPower(1);
+                    endPoseX = endPoseX + 2;
+                    endPoseY = endPoseY + 2;
                     break;
                 case 14:
                     follow.followPath(intake2ToEndPose);
@@ -740,6 +771,7 @@ public class BlueAuto extends OpMode {
                     break;
                 case 15:
                     if (follow.atPose(endPose,2,2) ){
+                        endPoseX = endPoseX+3;
                         pathTimer.resetTimer();
                         pathState = 2;
                     }
@@ -766,13 +798,20 @@ public class BlueAuto extends OpMode {
                 case 19:
                     follower.setMaxPower(1);
                     if (follow.atPose(intake3,2,2)){
-                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                        if (pathTimer.getElapsedTimeSeconds() > 2){
                             intake.setPower(1);
                             pathTimer.resetTimer();
                         }
-                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                             pathTimer.resetTimer();
                             pathState = 20;
+                        }
+                    }
+                    if (pathTimer.getElapsedTimeSeconds() > 2.5){
+                        pathState = 20;
+                        if (pathTimer.getElapsedTimeSeconds() > 3){
+                            intake.setPower(1);
+                            pathTimer.resetTimer();
                         }
                     }
                     break;
@@ -783,23 +822,24 @@ public class BlueAuto extends OpMode {
                     pathState = 21;
                     break;
                 case 21:
-                    if (follow.atPose(endPose,1,1)){
+                    if (follow.atPose(endPose,2,2)){
                         pathTimer.resetTimer();
-                        intake.setPower(0);
-                        pathState = 2;
-                    }
-                    if (pathTimer.getElapsedTimeSeconds() > 2){
                         intake.setPower(0);
                         pathState = 2;
                     }
                     break;
                 case 22:
+                    follower.setMaxPower(1);
+                    setFlywheelRPM(3800);
                     intake.setPower(0);
-                    requestOpModeStop();
+                    if (leaveTimer.getElapsedTimeSeconds() >= 28){
+                        follower.followPath(endPoseToLineup3);
+                    }
                     break;
             }
             return pathState;
         }
+
 
         private void setFlywheelRPM(double rpm) {
             double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;

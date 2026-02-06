@@ -18,8 +18,8 @@ import org.firstinspires.ftc.teamcode.AprilTagControllers.TestingTurretControlle
 import org.firstinspires.ftc.teamcode.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Red Auto Shoot")
-public class RedAuto extends OpMode {
+@Autonomous(name = "Blue Auto New ")
+public class BlueAutoNew extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;
@@ -38,15 +38,15 @@ public class RedAuto extends OpMode {
 
     double endPoseY = 93.9813;
     double endPoseX = 95.1028;
-    private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(37));
-    private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(37));
-    private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(0));
-    private final Pose intake1 = new Pose(124, 96, Math.toRadians(0));
-    private final Pose releaseBalls = new Pose(130, 80, Math.toRadians(0));
-    private final Pose intake2Lineup = new Pose(95.15887850467287,64,Math.toRadians(-3));
-    private final Pose intake2 = new Pose(130,62, Math.toRadians(-7));
-    private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(0));
-    private final Pose intake3 = new Pose(132,42, Math.toRadians(-3));
+    private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(flipHeading(37)));
+    private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(flipHeading(37)));
+    private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(flipHeading(0)));
+    private final Pose intake1 = new Pose(124, 96, Math.toRadians(flipHeading(0)));
+    private final Pose releaseBalls = new Pose(130, 80, Math.toRadians(flipHeading(0)));
+    private final Pose intake2Lineup = new Pose(95.15887850467287,64,Math.toRadians(flipHeading(-3)));
+    private final Pose intake2 = new Pose(130,62, Math.toRadians(flipHeading(-7)));
+    private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(flipHeading(0)));
+    private final Pose intake3 = new Pose(132,42, Math.toRadians(flipHeading(-3)));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3, servo4;
@@ -61,6 +61,16 @@ public class RedAuto extends OpMode {
 
     private int pathState = 0;
     private Paths paths;
+
+    private double flipHeading(double heading) {
+        double headingDistance = heading - 90;
+        return (90 - headingDistance);
+    }
+    private double flipX(double x) {
+        double fieldSizeX = 144;
+        //double distance = x-(fieldSizeX/2);
+        return (fieldSizeX - x);
+    }
 
     @Override
     public void init() {
@@ -400,7 +410,7 @@ public class RedAuto extends OpMode {
                 case 14:
                     follow.followPath(intake2ToEndPose);
                     pathState = 15;
-                   break;
+                    break;
                 case 15:
                     if (follow.atPose(endPose,2,2) ){
                         endPoseX = endPoseX+3;
@@ -420,7 +430,7 @@ public class RedAuto extends OpMode {
                         pathTimer.resetTimer();
                         pathState = 18;
                     }
-                        break;
+                    break;
                 case 18:
                     follower.followPath(lineup3ToIntake3);
                     follower.setMaxPower(0.75);
