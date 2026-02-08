@@ -34,15 +34,15 @@ public class RedTele extends OpMode {
 
     // ================= SHOOTER =================
     private DcMotorEx leftFlywheel, rightFlywheel;
-    private Servo hoodServo;
+   // private Servo hoodServo;
     private double targetRPM = 0;
-    private double hoodPosition = 0.5;
+   // private double hoodPosition = 0.5;
     private static final double HOOD_INCREMENT = 0.01;
     DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
     private boolean flywheelToggle;
 
     // ================= FLYWHEEL SPEED CONTROL =================
-    private static final double BASE_FLYWHEEL_RPM = 3850;
+    private static final double BASE_FLYWHEEL_RPM = 3650;
     private static final double BOOST_FLYWHEEL_RPM = 6000; // adjust as needed
 
     private boolean lastDpadUp = false;
@@ -52,12 +52,13 @@ public class RedTele extends OpMode {
 
     // ================= FLIPPERS =================
     private Servo servo1, servo2, servo3, servo4;
-
+    private Servo lift1, lift2;
     // ================= INTAKE =================
     private DcMotorEx intake;
     private boolean intakeToggle = false;
     private boolean backspinToggle = false;
-
+    private boolean liftToggle = false;
+    private boolean lastLiftToggle = false;
     private ServoGroup motifServos;
     private boolean motifButtonPressedLast = false;
     private boolean lastFlywheelTrigger = false;
@@ -85,7 +86,7 @@ public class RedTele extends OpMode {
         leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        hoodServo = hardwareMap.get(Servo.class, "shooterAngler");
+      //  hoodServo = hardwareMap.get(Servo.class, "shooterAngler");
         flywheel = new DualMotor(leftFlywheel, rightFlywheel);
         flywheel.setDirections(
             DcMotorSimple.Direction.REVERSE,
@@ -101,6 +102,9 @@ public class RedTele extends OpMode {
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
         servo4 = hardwareMap.get(Servo.class, "stopper");
+        lift1 = hardwareMap.get(Servo.class, "lift1");
+        lift2 = hardwareMap.get(Servo.class, "lift2");
+
 
         // --- drive follower ---
         follower = Constants.createFollower(hardwareMap);
@@ -108,11 +112,13 @@ public class RedTele extends OpMode {
         follower.update();
 
         // --- hood start ---
-        hoodServo.setPosition(0);
+     //   hoodServo.setPosition(0);
         servo1.setPosition(0.1);
         servo2.setPosition(0);
         servo3.setPosition(0);
         servo4.setPosition(0);
+        lift1.setPosition(0.9);
+        lift2.setPosition(0.92);
 
         turretController = new AprilTagTurretControllerRed(hardwareMap);
         turretController.resetController();
@@ -163,7 +169,6 @@ public class RedTele extends OpMode {
 
             if (dpadUp && !lastDpadUp) {
                 targetRPM = BOOST_FLYWHEEL_RPM;
-                hoodServo.setPosition(hoodPosition);
             }
 
             if (dpadDown && !lastDpadDown) {
@@ -222,7 +227,17 @@ public class RedTele extends OpMode {
         } else {
             intake.setPower(0);
         }
+//lift Servos
+        boolean frontPressed = gamepad2.left_trigger > 0.5;
+        if (frontPressed && !lastLiftToggle) {
+            liftToggle = !liftToggle;
+        }
+        lastLiftToggle = frontPressed;
 
+        if (frontPressed){
+             lift2.setPosition(0.52);
+             lift1.setPosition(0.5);
+         }
 // Set intake power based on toggles
         // ================= TELEMETRY =================
         if (servos.isRunning()) {

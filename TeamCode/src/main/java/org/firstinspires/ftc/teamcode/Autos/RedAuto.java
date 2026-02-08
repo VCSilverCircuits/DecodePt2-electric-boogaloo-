@@ -193,7 +193,7 @@ public class RedAuto extends OpMode {
                     leaveTimer.resetTimer();
                     follow.followPath(startToEnd);
                     follower.setMaxPower(1);
-                    setFlywheelRPM(3550);
+                    setFlywheelRPM(3650);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     pathState = 1;
