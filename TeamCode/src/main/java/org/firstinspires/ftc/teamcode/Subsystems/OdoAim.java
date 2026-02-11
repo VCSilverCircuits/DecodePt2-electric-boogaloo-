@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.AprilTagControllers;
+package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 // Everything is in RADIANS
 @Configurable
-public class TestingTurret {
+public class OdoAim {
     DcMotorEx yawMotor;
     Follower follower;
     Limelight3A limelight;
@@ -43,7 +43,7 @@ public class TestingTurret {
      * @param follower    Used as fallback to determine distance to target using odometry
      * @param isRed       Set per alliance color
      */
-    public TestingTurret(HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public OdoAim(HardwareMap hardwareMap, Follower follower, boolean isRed) {
         // Stores follower and alliance color
         this.follower = follower;
         this.isRed = isRed;

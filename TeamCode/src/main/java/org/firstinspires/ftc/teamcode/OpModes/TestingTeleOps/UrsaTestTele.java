@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.TestingTeleOps;
+package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.AprilTagControllers.TestingTurret;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 
 
 // PEDRO PATHING IMPORTS
@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class UrsaTestTele extends OpMode {
 
     // Subsystems
-    private TestingTurret turret;
+    private OdoAim turret;
 
     // Pedro Pathing Follower (Handles Drivetrain)
     private Follower follower;
@@ -36,7 +36,7 @@ public class UrsaTestTele extends OpMode {
         follower.update();
 
         // Optimize Hardware Reads
-        turret = new TestingTurret(hardwareMap,follower,true);
+        turret = new OdoAim(hardwareMap,follower,true);
 
         // Initialize Telemetry Manager
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();

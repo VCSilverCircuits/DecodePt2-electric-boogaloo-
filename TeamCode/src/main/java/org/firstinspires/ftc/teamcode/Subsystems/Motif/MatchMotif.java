@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Motif;
+package org.firstinspires.ftc.teamcode.Subsystems.Motif;
 
 /**
  * Shared state for the match motif pattern.

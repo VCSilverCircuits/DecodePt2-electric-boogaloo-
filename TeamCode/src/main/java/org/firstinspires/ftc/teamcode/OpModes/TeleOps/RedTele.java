@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TeleOps;
+package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerRed;
-import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
-import org.firstinspires.ftc.teamcode.DualMotor;
-import org.firstinspires.ftc.teamcode.Motif.ServoGroup;
+import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerRed;
+import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
+import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name="Red TeleOp")

@@ -336,7 +336,7 @@ public class BlueAuto extends OpMode {
         }
 
 */
-package org.firstinspires.ftc.teamcode.Autos;
+package org.firstinspires.ftc.teamcode.OpModes.Autos;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -351,8 +351,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
-import org.firstinspires.ftc.teamcode.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerBlue;
+import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 
