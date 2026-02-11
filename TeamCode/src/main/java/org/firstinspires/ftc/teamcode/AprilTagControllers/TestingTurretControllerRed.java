@@ -32,7 +32,7 @@ public class TestingTurretControllerRed {
 
     /* ===================== ODOMETRY PID ===================== */
     private double odomP = 0.08;
-    private double odomD = 0.08;
+    private double odomD = 0.008;
 
     /* ===================== TURRET LIMITS ===================== */
     private static final double MIN_ANGLE_DEG = -260;

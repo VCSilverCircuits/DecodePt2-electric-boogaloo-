@@ -5,7 +5,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.AprilTagControllers.Turret;
+import org.firstinspires.ftc.teamcode.AprilTagControllers.TestingTurret;
 
 
 // PEDRO PATHING IMPORTS
@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class UrsaTestTele extends OpMode {
 
     // Subsystems
-    private Turret turret;
+    private TestingTurret turret;
 
     // Pedro Pathing Follower (Handles Drivetrain)
     private Follower follower;
@@ -36,7 +36,7 @@ public class UrsaTestTele extends OpMode {
         follower.update();
 
         // Optimize Hardware Reads
-        turret = new Turret(hardwareMap, follower);
+        turret = new TestingTurret(hardwareMap,follower,true);
 
         // Initialize Telemetry Manager
         telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -49,8 +49,9 @@ public class UrsaTestTele extends OpMode {
     @Override
     public void loop() {
         // --- 1. DRIVETRAIN (PedroPathing) ---
-        turret.aim(true);
         // Stick Y is inverted (Up is negative on standard gamepads)
+        turret.update();
+        turret.odoAim();
         follower.setTeleOpDrive(
             -gamepad1.left_stick_x, // Forward/Back
             +gamepad1.left_stick_y, // Strafe
@@ -61,15 +62,15 @@ public class UrsaTestTele extends OpMode {
 
         // --- Reset Yaw Encoder ---
         if (gamepad1.b) {
-            turret.zeroEncoder();
+            turret.idle();
         }
 
 
         // Telemetry
         telemetry.addLine("Use Dpad left and right to adjust gate position");
-        telemetry.addData("Current Yaw", turret.getCurrentPosition());
-        telemetry.addData("Tx", turret.getTx());
         telemetry.addData("Flywheel Target", "See Dashboard");
+        telemetry.addData("turretPosition", turret.getTurretPosition());
+        telemetry.addData("turretPosition", turret.getRelativeTargetHeading());
         telemetry.update(); telemetryManager.update();
     }
 }
