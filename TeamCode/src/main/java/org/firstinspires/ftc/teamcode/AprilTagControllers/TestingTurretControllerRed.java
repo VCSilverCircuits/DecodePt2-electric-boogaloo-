@@ -5,53 +5,90 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import java.util.List;
 
+/**
+ * Red-side turret controller
+ * Vision-first (AprilTag), smooth Pedro odometry fallback
+ * Outputs desired turret angle (degrees)
+ */
 public class TestingTurretControllerRed {
 
+    /* ===================== TARGET ===================== */
     private static final int TARGET_ID = 24;
 
-    // ===== VISION PID (ANGLE DOMAIN) =====
-    private double kP = 0.04;
-    private double kD = 0.002;
+    /* ===================== RED GOAL (PEDRO COORDS) ===================== */
+    private static final double RED_GOAL_X = 144;
+    private static final double RED_GOAL_Y = 144;
 
-    private static final double DEADBAND_DEG = 1.0;
+    /* ===================== VISION PID ===================== */
+    private double visionP = 0.08;
+    private double visionI = 0.0;
+    private double visionD = 0.008;
 
-    // ===== TURRET LIMITS =====
-    private static final double MIN_ANGLE_DEG = -80;
-    private static final double MAX_ANGLE_DEG = 260;
+    private static final double VISION_DEADBAND_DEG = 1.0;
 
+    /* ===================== ODOMETRY PID ===================== */
+    private double odomP = 0.08;
+    private double odomD = 0.08;
+
+    /* ===================== TURRET LIMITS ===================== */
+    private static final double MIN_ANGLE_DEG = -260;
+    private static final double MAX_ANGLE_DEG = 80;
+
+    /* ===================== HARDWARE ===================== */
     private final Limelight3A limelight;
 
-    // ===== PID STATE =====
-    private double lastError = 0;
-    private long lastTimeNs = 0;
+    /* ===================== VISION PID STATE ===================== */
+    private double visionIntegral = 0;
+    private double lastVisionError = 0;
+    private long lastVisionTimeNs = 0;
 
-    // ===== TARGET STATE =====
-    private double lastTargetAngleDeg = 0;
+    /* ===================== ODOM PID STATE ===================== */
+    private double lastOdomError = 0;
+    private long lastOdomTimeNs = 0;
+
+    /* ===================== STATE ===================== */
     private boolean hasLock = false;
+    private double lastTargetAngleDeg = 0;
 
-    // ===== ZEROING =====
+    /* ===================== ZEROING ===================== */
     private double turretZeroOffsetDeg = 0;
     private boolean turretZeroed = false;
 
+    /* ===================== PEDRO POSE ===================== */
+    private double robotX;
+    private double robotY;
+    private double robotHeadingRad;
+
     public TestingTurretControllerRed(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(0); // RED pipeline
         limelight.start();
     }
 
-    /**
-     * Define what encoder angle corresponds to a known field angle
-     */
+    /* ===================== POSE UPDATE ===================== */
+
+    /** Call every loop from Pedro follower */
+    public void updateRobotPose(double x, double y, double headingRad) {
+        robotX = x;
+        robotY = y;
+        robotHeadingRad = headingRad;
+    }
+
+    /* ===================== ZEROING ===================== */
+
     public void setPosition(double desiredAngleDeg, double currentTurretAngleDeg) {
         turretZeroOffsetDeg = desiredAngleDeg - currentTurretAngleDeg;
         turretZeroed = true;
     }
 
+    /* ===================== MAIN API ===================== */
+
     /**
-     * Returns the desired turret angle (degrees).
-     * Encoder PID will handle motor control.
+     * Returns desired turret angle in degrees
      */
     public double getTargetAngle(double currentTurretAngleDeg) {
 
@@ -61,6 +98,7 @@ public class TestingTurretControllerRed {
 
         LLResult result = limelight.getLatestResult();
 
+        /* ========== VISION PATH ========== */
         if (result != null && result.isValid()) {
             List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
 
@@ -68,8 +106,8 @@ public class TestingTurretControllerRed {
                 if (tag.getFiducialId() == TARGET_ID) {
                     hasLock = true;
 
-                    double tx = result.getTx(); // degrees yaw error
-                    double correction = visionPid(tx);
+                    double tx = result.getTx(); // degrees
+                    double correction = visionPID(tx);
 
                     lastTargetAngleDeg =
                         clamp(currentTurretAngleDeg + correction,
@@ -80,27 +118,79 @@ public class TestingTurretControllerRed {
             }
         }
 
-        // No tag → hold last known target
+        /* ========== PEDRO ODOMETRY FALLBACK ========== */
         hasLock = false;
+
+        double targetOdomAngle = computeOdometryAngleDeg();
+        double odomError =
+            AngleUnit.normalizeDegrees(targetOdomAngle - currentTurretAngleDeg);
+
+        double correction = odomPID(odomError);
+
+        lastTargetAngleDeg =
+            clamp(currentTurretAngleDeg + correction,
+                MIN_ANGLE_DEG, MAX_ANGLE_DEG);
+
         return lastTargetAngleDeg;
     }
 
-    // ===== VISION PID (ANGLE OUTPUT) =====
-    private double visionPid(double errorDeg) {
+    /* ===================== ODOMETRY AIMING ===================== */
 
-        if (Math.abs(errorDeg) < DEADBAND_DEG) {
+    private double computeOdometryAngleDeg() {
+        double dx = RED_GOAL_X - robotX;
+        double dy = RED_GOAL_Y - robotY;
+
+        double fieldAngleRad = Math.atan2(dy, dx);
+        double relativeRad = fieldAngleRad - robotHeadingRad;
+
+        return Math.toDegrees(AngleUnit.normalizeRadians(relativeRad));
+    }
+
+    /* ===================== VISION PID ===================== */
+
+    private double visionPID(double errorDeg) {
+
+        if (Math.abs(errorDeg) < VISION_DEADBAND_DEG) {
             return 0;
         }
 
         long now = System.nanoTime();
-        double dt = (lastTimeNs == 0) ? 0 : (now - lastTimeNs) / 1e9;
-        lastTimeNs = now;
+        double dt = (lastVisionTimeNs == 0) ? 0 : (now - lastVisionTimeNs) / 1e9;
+        lastVisionTimeNs = now;
 
-        double derivative = (dt > 0) ? (errorDeg - lastError) / dt : 0;
-        lastError = errorDeg;
+        if (dt > 0) {
+            visionIntegral += errorDeg * dt;
+        }
 
-        return kP * errorDeg + kD * derivative;
+        double derivative = (dt > 0)
+            ? (errorDeg - lastVisionError) / dt
+            : 0;
+
+        lastVisionError = errorDeg;
+
+        return visionP * errorDeg
+            + visionI * visionIntegral
+            + visionD * derivative;
     }
+
+    /* ===================== ODOM PID ===================== */
+
+    private double odomPID(double errorDeg) {
+
+        long now = System.nanoTime();
+        double dt = (lastOdomTimeNs == 0) ? 0 : (now - lastOdomTimeNs) / 1e9;
+        lastOdomTimeNs = now;
+
+        double derivative = (dt > 0)
+            ? (errorDeg - lastOdomError) / dt
+            : 0;
+
+        lastOdomError = errorDeg;
+
+        return odomP * errorDeg + odomD * derivative;
+    }
+
+    /* ===================== UTIL ===================== */
 
     private double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
@@ -115,12 +205,22 @@ public class TestingTurretControllerRed {
     }
 
     public void resetController() {
-        lastError = 0;
-        lastTimeNs = 0;
+        visionIntegral = 0;
+        lastVisionError = 0;
+        lastVisionTimeNs = 0;
+
+        lastOdomError = 0;
+        lastOdomTimeNs = 0;
+
         hasLock = false;
     }
 
-    // Optional setters for live tuning later
-    public void setVisionP(double p) { kP = p; }
-    public void setVisionD(double d) { kD = d; }
+    /* ===================== TUNING ===================== */
+
+    public void setVisionP(double p) { visionP = p; }
+    public void setVisionI(double i) { visionI = i; }
+    public void setVisionD(double d) { visionD = d; }
+
+    public void setOdomP(double p) { odomP = p; }
+    public void setOdomD(double d) { odomD = d; }
 }
