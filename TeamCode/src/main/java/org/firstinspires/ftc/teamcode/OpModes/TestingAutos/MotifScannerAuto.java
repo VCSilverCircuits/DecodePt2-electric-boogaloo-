@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.TestingAutos;
+package org.firstinspires.ftc.teamcode.OpModes.TestingAutos;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Motif.MotifDetector;
-import org.firstinspires.ftc.teamcode.Motif.MatchMotif;
+import org.firstinspires.ftc.teamcode.Subsystems.Motif.MotifDetector;
+import org.firstinspires.ftc.teamcode.Subsystems.Motif.MatchMotif;
 
 @Autonomous(name = "MotifScannerAuto")
 public class MotifScannerAuto extends LinearOpMode {

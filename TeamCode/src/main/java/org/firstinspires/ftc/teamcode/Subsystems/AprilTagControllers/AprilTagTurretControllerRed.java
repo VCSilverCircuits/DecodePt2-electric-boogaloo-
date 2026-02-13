@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.AprilTagControllers;
+package org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -7,15 +7,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.List;
 
-public class AprilTagTurretControllerBlue {
+public class AprilTagTurretControllerRed {
 
-    private static final int TARGET_ID = 20;
+    private static final int TARGET_ID = 24;
 
     // ===== PID =====
-    private static final double kP = 0.08;
+    private static final double kP = 0.06;
     private static final double kD = 0.008;
     private static final double MAX_POWER = 0.8;
-    private static final double DEADBAND_DEG = 1;
+    private static final double DEADBAND_DEG = 1.5;
 
     // ===== LIMITS =====
     private static final double MIN_ANGLE_DEG = -80;
@@ -34,7 +34,7 @@ public class AprilTagTurretControllerBlue {
     private double turretZeroOffsetDeg = 0;
     private boolean turretZeroed = false;
 
-    public AprilTagTurretControllerBlue(HardwareMap hardwareMap) {
+    public AprilTagTurretControllerRed(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
@@ -77,8 +77,21 @@ public class AprilTagTurretControllerBlue {
         }
 
         // No tag visible → stop turret
+        // ==================== RETURN TO ZERO MODE ====================
         hasLock = false;
-        return 0;
+
+// Error is how far turret is from zero
+        double zeroErrorDeg = -currentTurretAngleDeg;
+
+// Small deadband so it doesn't jitter at zero
+        if (Math.abs(zeroErrorDeg) < DEADBAND_DEG) {
+            resetController(); // clear PID memory once centered
+            return 0;
+        }
+
+// Use same PID to return home
+        return pid(zeroErrorDeg);
+
     }
 
     // ==================== PID ====================

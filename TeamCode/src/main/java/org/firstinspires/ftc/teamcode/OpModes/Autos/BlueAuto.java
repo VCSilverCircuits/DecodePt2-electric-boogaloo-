@@ -336,7 +336,7 @@ public class BlueAuto extends OpMode {
         }
 
 */
-package org.firstinspires.ftc.teamcode.Autos;
+package org.firstinspires.ftc.teamcode.OpModes.Autos;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -351,8 +351,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.AprilTagControllers.AprilTagTurretControllerBlue;
-import org.firstinspires.ftc.teamcode.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerBlue;
+import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 
@@ -547,9 +547,8 @@ public class BlueAuto extends OpMode {
 
             lineupToIntake2 = follower.pathBuilder().addPath(new BezierLine(intake2Lineup, intake2))
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(-10))).build();
-
-            intake2ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake2, endPose))
-                    .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(37))).build();
+            intake2ToEndPose = follower.pathBuilder().addPath(new BezierCurve(intake2, new Pose(80.01869158878506,57.25233644859814),endPose))
+                .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(37))).build();
             endPoseToLineup3 = follower.pathBuilder().addPath(new BezierLine(endPose, intake3Lineup))
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(-7))).build();
             lineup3ToIntake3 = follower.pathBuilder().addPath(new BezierLine(intake3Lineup, intake3))
@@ -564,7 +563,7 @@ public class BlueAuto extends OpMode {
                 case 0: // Start -> Shoot preload
                     follow.followPath(startToEnd);
                     follower.setMaxPower(.9);
-                    setFlywheelRPM(3850);
+                    setFlywheelRPM(3650);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     leaveTimer.resetTimer();

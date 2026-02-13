@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.AprilTagControllers;
+package org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -7,42 +7,43 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.List;
 
-public class TestingTurretControllerRed {
+public class AprilTagTurretControllerBlue {
 
-    private static final int TARGET_ID = 24;
+    private static final int TARGET_ID = 20;
 
-    // ===== VISION PID (ANGLE DOMAIN) =====
-    private double kP = 0.04;
-    private double kD = 0.002;
+    // ===== PID =====
+    private static final double kP = 0.08;
+    private static final double kD = 0.008;
+    private static final double MAX_POWER = 0.8;
+    private static final double DEADBAND_DEG = 1;
 
-    private static final double DEADBAND_DEG = 1.0;
-
-    // ===== TURRET LIMITS =====
+    // ===== LIMITS =====
     private static final double MIN_ANGLE_DEG = -80;
     private static final double MAX_ANGLE_DEG = 260;
 
     private final Limelight3A limelight;
 
-    // ===== PID STATE =====
+    // --- PID variables ---
     private double lastError = 0;
     private long lastTimeNs = 0;
 
-    // ===== TARGET STATE =====
-    private double lastTargetAngleDeg = 0;
+    // --- Vision lock ---
     private boolean hasLock = false;
 
-    // ===== ZEROING =====
+    // --- Turret zeroing ---
     private double turretZeroOffsetDeg = 0;
     private boolean turretZeroed = false;
 
-    public TestingTurretControllerRed(HardwareMap hardwareMap) {
+    public AprilTagTurretControllerBlue(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
     }
 
     /**
-     * Define what encoder angle corresponds to a known field angle
+     * Sets the current turret encoder position to be treated as a specific angle
+     * @param desiredAngleDeg the angle you want to consider as "zeroed"
+     * @param currentTurretAngleDeg the current encoder angle in degrees
      */
     public void setPosition(double desiredAngleDeg, double currentTurretAngleDeg) {
         turretZeroOffsetDeg = desiredAngleDeg - currentTurretAngleDeg;
@@ -50,47 +51,39 @@ public class TestingTurretControllerRed {
     }
 
     /**
-     * Returns the desired turret angle (degrees).
-     * Encoder PID will handle motor control.
+     * Computes the turret power based on vision tracking
+     * @param currentTurretAngleDeg turret encoder angle in degrees
      */
-    public double getTargetAngle(double currentTurretAngleDeg) {
+    public double getTurretPower(double currentTurretAngleDeg) {
 
+        // Apply zero offset if set
         if (turretZeroed) {
             currentTurretAngleDeg += turretZeroOffsetDeg;
         }
 
         LLResult result = limelight.getLatestResult();
 
+        // ==================== VISION MODE ====================
         if (result != null && result.isValid()) {
             List<LLResultTypes.FiducialResult> tags = result.getFiducialResults();
-
             for (LLResultTypes.FiducialResult tag : tags) {
                 if (tag.getFiducialId() == TARGET_ID) {
                     hasLock = true;
 
-                    double tx = result.getTx(); // degrees yaw error
-                    double correction = visionPid(tx);
-
-                    lastTargetAngleDeg =
-                        clamp(currentTurretAngleDeg + correction,
-                            MIN_ANGLE_DEG, MAX_ANGLE_DEG);
-
-                    return lastTargetAngleDeg;
+                    double tx = result.getTx(); // degrees offset from limelight
+                    return pid(tx);
                 }
             }
         }
 
-        // No tag → hold last known target
+        // No tag visible → stop turret
         hasLock = false;
-        return lastTargetAngleDeg;
+        return 0;
     }
 
-    // ===== VISION PID (ANGLE OUTPUT) =====
-    private double visionPid(double errorDeg) {
-
-        if (Math.abs(errorDeg) < DEADBAND_DEG) {
-            return 0;
-        }
+    // ==================== PID ====================
+    private double pid(double errorDeg) {
+        if (Math.abs(errorDeg) < DEADBAND_DEG) return 0;
 
         long now = System.nanoTime();
         double dt = (lastTimeNs == 0) ? 0 : (now - lastTimeNs) / 1e9;
@@ -99,14 +92,15 @@ public class TestingTurretControllerRed {
         double derivative = (dt > 0) ? (errorDeg - lastError) / dt : 0;
         lastError = errorDeg;
 
-        return kP * errorDeg + kD * derivative;
+        double output = kP * errorDeg + kD * derivative;
+        return clamp(output, -MAX_POWER, MAX_POWER);
     }
 
     private double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
     }
 
-    public boolean hasLock() {
+    public boolean isLocked() {
         return hasLock;
     }
 
@@ -114,13 +108,9 @@ public class TestingTurretControllerRed {
         return turretZeroed;
     }
 
+    // Optional: reset PID entirely
     public void resetController() {
         lastError = 0;
         lastTimeNs = 0;
-        hasLock = false;
     }
-
-    // Optional setters for live tuning later
-    public void setVisionP(double p) { kP = p; }
-    public void setVisionD(double d) { kD = d; }
 }

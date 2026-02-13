@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.Motif;
+package org.firstinspires.ftc.teamcode.Subsystems.Motif;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.teamcode.ColorSensorTests.ColorSensors;
+import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class ServoGroup {
     /* =========================================================
        🔫 FORCED SEQUENTIAL MODE (s1 → s2 → s3)
        ========================================================= */
-    public void startSequentialBackUp() {
+    public void StartNonSort() {
         firingOrder.clear();
         index = 0;
         servoUp = false;
