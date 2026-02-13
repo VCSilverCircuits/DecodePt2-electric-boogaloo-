@@ -50,8 +50,6 @@ public class RedAuto extends OpMode {
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3, servo4;
     private DcMotorEx intake;
-    private boolean lastFlywheelTrigger = false;
-    private boolean lastIntakeTrigger = false;
 
 
     boolean comingBack = false;

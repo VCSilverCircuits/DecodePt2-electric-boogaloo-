@@ -36,7 +36,7 @@ public class ServoGroup {
     /* =========================================================
        🔫 FORCED SEQUENTIAL MODE (s1 → s2 → s3)
        ========================================================= */
-    public void startSequentialBackUp() {
+    public void StartNonSort() {
         firingOrder.clear();
         index = 0;
         servoUp = false;

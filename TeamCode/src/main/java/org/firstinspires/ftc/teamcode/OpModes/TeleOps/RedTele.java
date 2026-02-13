@@ -201,7 +201,7 @@ public class RedTele extends OpMode {
             sensors.update();
 
             // Start servo sequence based on motif + current sensor colors
-            servos.startSequentialBackUp();
+            servos.StartNonSort();
 
             isFiring = true;
         }
