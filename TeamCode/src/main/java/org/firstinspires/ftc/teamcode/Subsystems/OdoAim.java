@@ -27,7 +27,7 @@ public class OdoAim {
     // TODO: TUNE THIS VALUE!
     public static double RADIANSPERTICK = 0.001062;
 
-    final Pose REDTARGET = new Pose(137.0, 143.0);
+    final Pose REDTARGET = new Pose(144.0, 143.0);
     final Pose BLUETARGET = new Pose(6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
@@ -63,7 +63,7 @@ public class OdoAim {
      */
     public void update() {
         // Calculate turret angle relative to the robot chassis
-        turretPosition = AngleUnit.normalizeRadians(yawMotor.getCurrentPosition() * RADIANSPERTICK);
+        turretPosition = yawMotor.getCurrentPosition() * RADIANSPERTICK;
 
         // Get target coordinates
         double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
@@ -105,22 +105,27 @@ public class OdoAim {
         }
     }
     public void odoAim() {
+
         double targetAngle = relativeTargetHeading;
 
-        // Check if target is outside physical limits
-        if (targetAngle >= MAX_TURRET_RAD) {
-            // Flip to opposite direction
-            targetAngle = AngleUnit.normalizeRadians(targetAngle + Math.PI);
-        } else if (targetAngle <= MIN_TURRET_RAD) {
-            // Flip to opposite direction
-            targetAngle = AngleUnit.normalizeRadians(targetAngle + Math.PI/2);
+        // -------------------------------------------------
+        // HARD CLAMP TARGET TO PHYSICAL LIMITS
+        // -------------------------------------------------
+
+        if (targetAngle > MAX_TURRET_RAD) {
+            targetAngle = MAX_TURRET_RAD;
+        }
+        else if (targetAngle < MIN_TURRET_RAD) {
+            targetAngle = MIN_TURRET_RAD;
         }
 
-        // PID calculation
+        // -------------------------------------------------
+        // PID Toward Clamped Target
+        // -------------------------------------------------
+
         double power = odometryPIDF.calculate(turretPosition, targetAngle);
 
-        // Clamp and set power
-        yawMotor.setPower(Math.max(-1, Math.min(1, power)));
+        yawMotor.setPower(normalizePower(power));
     }
 
 
