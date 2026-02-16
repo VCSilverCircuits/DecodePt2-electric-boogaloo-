@@ -20,8 +20,8 @@ public class ServoGroup {
     private Servo lastAddedServo = null;
 
     // Timing constants
-    private static final long UP_DURATION_MS = 250;
-    private static final long DOWN_DELAY_MS = 250;
+    private static final long UP_DURATION_MS = 275;
+    private static final long DOWN_DELAY_MS = 275;
 
     public ServoGroup(HardwareMap hw,
                       String servo1, String servo2, String servo3) {

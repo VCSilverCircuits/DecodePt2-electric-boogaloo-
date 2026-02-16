@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class FlywheelConstants {
 
     private DcMotorEx leftFlywheel, rightFlywheel;
-    private Servo hoodServo;
+  //  private Servo hoodServo;
 
     public static final double TICKS_PER_REV = 28;
 
@@ -36,7 +36,7 @@ public class FlywheelConstants {
 
         leftFlywheel = hardwareMap.get(DcMotorEx.class, "Output1");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "Output2");
-        hoodServo = hardwareMap.get(Servo.class, "Hood"); // servo name in config
+       // hoodServo = hardwareMap.get(Servo.class, "Hood"); // servo name in config
 
         leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -46,8 +46,8 @@ public class FlywheelConstants {
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        leftFlywheel.setVelocityPIDFCoefficients(0.027, 0, 0, 12.9);
-        rightFlywheel.setVelocityPIDFCoefficients(0.027, 0, 0, 12.9);
+        leftFlywheel.setVelocityPIDFCoefficients(0.027, 0, 0.004, 12.9);
+        rightFlywheel.setVelocityPIDFCoefficients(0.027, 0, 0.004, 12.9);
 
         goalX = 144;
         goalY = 144;
@@ -88,7 +88,7 @@ public class FlywheelConstants {
     }
 
     private void applyRPM(double rpm) {
-        double ticksPerSecond = (rpm * TICKS_PER_REV) / 55.0;
+        double ticksPerSecond = ((rpm * TICKS_PER_REV) / 55.0) *1.2;
 
         leftFlywheel.setVelocity(ticksPerSecond);
         rightFlywheel.setVelocity(ticksPerSecond);
@@ -151,7 +151,7 @@ public class FlywheelConstants {
     }
 
     public double getCurrentRPM() {
-        double ticksPerSecond = leftFlywheel.getVelocity();
+        double ticksPerSecond = rightFlywheel.getVelocity();
         return (ticksPerSecond * 60.0) / TICKS_PER_REV;
     }
 

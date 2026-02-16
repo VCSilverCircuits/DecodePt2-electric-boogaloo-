@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -27,12 +28,12 @@ public class OdoAim {
     // TODO: TUNE THIS VALUE!
     public static double RADIANSPERTICK = 0.001062;
 
-    final Pose REDTARGET = new Pose(144.0, 143.0);
+    final Pose REDTARGET = new Pose(150.0, 139.0);
     final Pose BLUETARGET = new Pose(6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.0, 0.0, 0.00, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(1.1, 0.0, 0.003, 0.2);
+    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.003, 0.2);
 
     double relativeTargetHeading;
     boolean isRed;
@@ -149,6 +150,9 @@ public class OdoAim {
     public void stop() {
         yawMotor.setPower(0);
         limelight.stop();
+    }
+    public void resetEncoder(){
+        yawMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     private double normalizePower(double power) {

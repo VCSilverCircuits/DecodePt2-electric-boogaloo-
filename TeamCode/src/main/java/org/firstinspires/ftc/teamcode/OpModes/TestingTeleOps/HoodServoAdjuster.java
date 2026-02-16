@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "Hood Servo Adjuster", group = "TeleOp")
+@TeleOp(name = "Hood Servo Adjuster")
 public class HoodServoAdjuster extends OpMode {
     private FlywheelConstants flywheel;
     private Follower follower;
@@ -21,9 +21,9 @@ public class HoodServoAdjuster extends OpMode {
     private Servo hoodServo;
 
     // Adjustable hood angle in degrees
-    private double hoodAngle = 20; // starting angle
-    private final double minAngle = 10;
-    private final double maxAngle = 40;
+    private double hoodAngle = 120; // starting angle
+    private final double minAngle = 0;
+    private final double maxAngle = 120;
     private final double step = 1; // degrees per button press
 
     @Override
@@ -41,7 +41,7 @@ public class HoodServoAdjuster extends OpMode {
 
     @Override
     public void start() {
-        follower.setStartingPose(new Pose(122.0187, 123.8131, Math.toRadians(37))); // example start
+        follower.setStartingPose(new Pose(84.037, 10.019, Math.toRadians(0))); // example start
         flywheel.enable();
     }
 

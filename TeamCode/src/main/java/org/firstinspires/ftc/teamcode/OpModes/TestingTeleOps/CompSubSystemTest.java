@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,7 +33,6 @@ public class CompSubSystemTest extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         turret = new OdoAim(hardwareMap, follower, true);
         flywheel = new FlywheelConstants(hardwareMap, follower);
-
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
 
@@ -53,7 +53,9 @@ public class CompSubSystemTest extends OpMode {
     @Override
     public void start() {
         follower.startTeleopDrive();
+        follower.setStartingPose(new Pose(84.037, 10.019, Math.toRadians(0))); // example start
         flywheel.enable();
+
     }
 
     @Override
@@ -66,6 +68,7 @@ public class CompSubSystemTest extends OpMode {
         );
         follower.update();
         flywheel.update(-gamepad1.left_stick_y * 50);
+        turret.update();
         turret.odoAim();
         servos.loop();
         // ================= INTAKE AND BACKSPIN =================
