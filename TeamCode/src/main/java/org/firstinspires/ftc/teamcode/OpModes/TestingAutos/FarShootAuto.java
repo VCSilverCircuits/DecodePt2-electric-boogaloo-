@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes.TestingAutos;
 
+import android.view.PixelCopy;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.geometry.BezierCurve;
@@ -19,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 @Autonomous( name = "Far Auto Red")
 public class FarShootAuto extends OpMode {
     private Follower follower;
-    private Timer pathTimer;
+    private static Timer pathTimer;
     private Timer leaveTimer;
     MecanumConstants mecanumConstants;
 
@@ -30,14 +32,15 @@ public class FarShootAuto extends OpMode {
     private static final double DEGREES_PER_TICK = 360.0 / TICKS_PER_MOTOR_REV / BELT_RATIO;
 
     ColorSensors sensors;
-    private ServoGroup servos;
+    private static ServoGroup servos;
 
     int timesShot = 0;
 
     private static final Pose startPose = new Pose(84.03738317757008, 10.018691588785039, Math.toRadians(0));
     private static final Pose intake1 = new Pose(128.89719626168227, 36, Math.toRadians(0));
-    private DcMotorEx leftFlywheel, rightFlywheel;
-    private DcMotorEx intake;
+    private static DcMotorEx leftFlywheel;
+    private static DcMotorEx rightFlywheel;
+    private static DcMotorEx intake;
     public static final double MAX_FLYWHEEL_RPM = 6000;
     private int pathState = 0;
     private Paths paths;
@@ -91,7 +94,7 @@ public class FarShootAuto extends OpMode {
 
     }
 
-    public static class Paths {
+    public class Paths {
         public PathChain Path1, Path2;
         private Follower follow;
 
@@ -100,25 +103,59 @@ public class FarShootAuto extends OpMode {
             Path1 = follower.pathBuilder().addPath(new BezierCurve(startPose,new Pose(75.636, 35.991), intake1))
                 .setLinearHeadingInterpolation(startPose.getHeading(), intake1.getHeading()).build();
 
-            Path2 = follower.pathBuilder().addPath(
-                    new BezierCurve(
-                        new Pose(128.897, 36.000),
-                        new Pose(75.636, 35.991),
-                        new Pose(84.037, 10.019)
-                    )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-
-                .build();
+            Path2 = follower.pathBuilder().addPath(new BezierCurve(intake1,new Pose(75.636, 35.991), startPose))
+                    .setLinearHeadingInterpolation(intake1.getHeading(), startPose.getHeading()).build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
             switch (pathState) {
 
                 case 0:
+                    // Start servo sequence based on motif + current sensor colors
+                    servos.StartNonSort();
+                    follow.setMaxPower(1);
+                    setFlywheelRPM(3650);
+                    intake.setPower(-1);
+                    pathTimer.resetTimer();
+                    pathState = 1;
+                    break;
 
+                case 1:
+                    if (!servos.isRunning()){
+                        follow.followPath(Path1);
+                        intake.setPower(1);
+                        pathState = 2;
+                    }
+                    break;
+
+                case 2:
+                    if (follow.atPose(intake1, 2, 2)) {
+                        pathTimer.resetTimer();
+                        intake.setPower(-1);
+                        follow.followPath(Path2);
+                        pathState = 3;
+                    }
+                    break;
+
+                case 3:
+                    if (follow.atPose(startPose, 2, 2)) {
+                        pathTimer.resetTimer();
+                        servos.StartNonSort();
+                        pathState = 4;
+                    }
+                    break;
+
+                case 4:
+                    requestOpModeStop();
             }
 
             return pathState;
+        }
+        private void setFlywheelRPM(double rpm) {
+            double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
+            leftFlywheel.setVelocityPIDFCoefficients(0.022,0,0,13.6);
+            leftFlywheel.setVelocity(ticksPerSecond);
+            rightFlywheel.setVelocity(ticksPerSecond);
         }
     }
 }

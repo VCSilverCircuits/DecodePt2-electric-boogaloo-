@@ -22,6 +22,9 @@ public class ScrimBotTelop extends OpMode{
     private double TurboMode = 0.5;
     private boolean IfRightTriggerPress = false;
     private double PrevIntakePose = 0;
+    private boolean IfLeftTriggerPress = false;
+    private double prevflywheelspeed =0;
+    private int flyWheelspeed = 1;
 
     @Override
     public void init() {
@@ -88,7 +91,20 @@ public class ScrimBotTelop extends OpMode{
         if (gamepad1.right_trigger<0.5){
             IfRightTriggerPress = false;
         }
-
-
+        if (gamepad1.left_trigger>0.5 && !IfLeftTriggerPress){
+           if (prevflywheelspeed>0){
+               flywheel1.setPower(0);
+               flywheel2.setPower(0);
+               prevflywheelspeed = (0);
+           }else {
+               flywheel1.setPower(flyWheelspeed);
+               flywheel2.setPower(flyWheelspeed);
+               prevflywheelspeed = (1);
+           }
+           IfLeftTriggerPress = true;
+        }
+        if (gamepad1.left_trigger<0.5){
+            IfLeftTriggerPress = false;
+        }
     }
 }
