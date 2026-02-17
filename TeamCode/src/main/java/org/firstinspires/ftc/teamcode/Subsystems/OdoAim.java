@@ -33,7 +33,7 @@ public class OdoAim {
 
     // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.0, 0.0, 0.00, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.003, 0.2);
+    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.005, 0.2);
 
     double relativeTargetHeading;
     boolean isRed;
