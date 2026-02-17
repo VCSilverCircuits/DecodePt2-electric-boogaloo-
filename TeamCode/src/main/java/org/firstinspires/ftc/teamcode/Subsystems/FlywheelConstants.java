@@ -15,7 +15,7 @@ public class FlywheelConstants {
 
     // ================= LOOKUP TABLES =================
     private final double[] distances = {22, 38.5, 58.5, 75.5, 97, 111};
-    private final double[] rpms      = {2623, 2789, 3022, 3155, 3520, 4350};
+    private final double[] rpms      = {2423, 2789, 3022, 3155, 3520, 4350};
     //private final double[] hoodAngles = {10, 15, 22, 28, 35, 40}; // degrees
 
     private final double velocityCompGain = 2.0;
