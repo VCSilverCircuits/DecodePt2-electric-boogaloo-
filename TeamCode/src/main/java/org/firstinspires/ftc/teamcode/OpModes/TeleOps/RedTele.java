@@ -2,270 +2,162 @@ package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
-import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name="Red TeleOp")
+@TeleOp(name = "Red Tele")
 public class RedTele extends OpMode {
-    AprilTagTurretControllerRed turretController;
-    ColorSensors sensors;
-    private ServoGroup servos;
-    private boolean isFiring = false;
-    // ================= DRIVE =================
+
+    private FlywheelConstants flywheel;
     private Follower follower;
+    private OdoAim turret;
+    private ServoGroup servos;
+    private ColorSensors sensors;
 
-    // ================= TURRET =================
-    private DcMotorEx turret;
-    private static final double BELT_RATIO = 230.0 / 20.0;
-    private static final double TICKS_PER_MOTOR_REV = 537.6;
-    private static final double DEGREES_PER_TICK =
-        360.0 / TICKS_PER_MOTOR_REV / BELT_RATIO;
-
-    private static final double TICKS_PER_REV = 28;
-
-    // ================= SHOOTER =================
-    private DcMotorEx leftFlywheel, rightFlywheel;
-   // private Servo hoodServo;
-    private double targetRPM = 0;
-   // private double hoodPosition = 0.5;
-    private static final double HOOD_INCREMENT = 0.01;
-    DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
-    private boolean flywheelToggle;
-
-    // ================= FLYWHEEL SPEED CONTROL =================
-    private static final double BASE_FLYWHEEL_RPM = 3650;
-    private static final double BOOST_FLYWHEEL_RPM = 6000; // adjust as needed
-
-    private boolean lastDpadUp = false;
-    private boolean lastDpadDown = false;
-
-
-
-    // ================= FLIPPERS =================
-    private Servo servo1, servo2, servo3, servo4;
-    private Servo lift1, lift2;
-    // ================= INTAKE =================
     private DcMotorEx intake;
+
+    private Servo lift1, lift2;
+    private Servo stopper;
+
     private boolean intakeToggle = false;
-    private boolean backspinToggle = false;
-    private boolean liftToggle = false;
-    private boolean lastLiftToggle = false;
-    private ServoGroup motifServos;
-    private boolean motifButtonPressedLast = false;
-    private boolean lastFlywheelTrigger = false;
     private boolean lastIntakeTrigger = false;
 
+    private boolean liftToggle = false;
+    private boolean lastLiftToggle = false;
+
+    private boolean isFiring = false;
+    private boolean intakeLocked = false;   // 🔒 NEW LOCK VARIABLE
 
     @Override
     public void init() {
+
+        follower = Constants.createFollower(hardwareMap);
+        turret = new OdoAim(hardwareMap, follower, true);
+        flywheel = new FlywheelConstants(hardwareMap, follower, true);
+
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
 
         servos = new ServoGroup(
             hardwareMap,
-            "frontFlipper", "backFlipper", "leftFlipper"
-        );
-        // --- turret ---
-        turret = hardwareMap.get(DcMotorEx.class, "turretRotation");
-        turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        turret.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-
-        // --- flywheel / hood ---
-        leftFlywheel = hardwareMap.get(DcMotorEx.class, "Output1");
-        rightFlywheel = hardwareMap.get(DcMotorEx.class, "Output2");
-        leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-      //  hoodServo = hardwareMap.get(Servo.class, "shooterAngler");
-        flywheel = new DualMotor(leftFlywheel, rightFlywheel);
-        flywheel.setDirections(
-            DcMotorSimple.Direction.REVERSE,
-            DcMotorSimple.Direction.FORWARD
+            "frontFlipper",
+            "backFlipper",
+            "leftFlipper"
         );
 
-        // --- intake ---
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        // --- flippers ---
-        servo1 = hardwareMap.get(Servo.class, "frontFlipper");
-        servo2 = hardwareMap.get(Servo.class, "backFlipper");
-        servo3 = hardwareMap.get(Servo.class, "leftFlipper");
-        servo4 = hardwareMap.get(Servo.class, "stopper");
         lift1 = hardwareMap.get(Servo.class, "lift1");
         lift2 = hardwareMap.get(Servo.class, "lift2");
+        stopper = hardwareMap.get(Servo.class, "stopper");
 
-
-        // --- drive follower ---
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(122.0187, 123.8131, Math.toRadians(37))); // example start
-        follower.update();
-
-        // --- hood start ---
-     //   hoodServo.setPosition(0);
-        servo1.setPosition(0.1);
-        servo2.setPosition(0);
-        servo3.setPosition(0);
-        servo4.setPosition(0);
         lift1.setPosition(0.9);
         lift2.setPosition(0.92);
-
-        turretController = new AprilTagTurretControllerRed(hardwareMap);
-        turretController.resetController();
-
-
     }
 
     @Override
     public void start() {
         follower.startTeleopDrive();
-        double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
-        turretController.setPosition(0, currentAngleDeg);
+        follower.setStartingPose(new Pose(84.037, 10.019, Math.toRadians(0)));
+        flywheel.enable();
     }
 
     @Override
     public void loop() {
-        //motifServos.loop();
-        servos.loop();
-        double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
-        double power = turretController.getTurretPower(currentAngleDeg);
-        turret.setPower(power);
+
         // ================= DRIVE =================
-        follower.update();
         follower.setTeleOpDrive(
             -gamepad1.left_stick_y,
             -gamepad1.left_stick_x,
             -gamepad1.right_stick_x * 0.5,
             true
         );
-        // Current turret angle
 
+        follower.update();
+        flywheel.update(-gamepad1.left_stick_y * 50);
+        turret.update();
+        turret.odoAim();
+        servos.loop();
 
-        turret.setPower((gamepad2.left_stick_x / 5) * 4);
-
-
-        // ================= FLYWHEEL =================
-        boolean flywheelPressed = gamepad2.right_trigger > 0.5;
-        if (flywheelPressed && !lastFlywheelTrigger) {
-            flywheelToggle = !flywheelToggle;
-        }
-        lastFlywheelTrigger = flywheelPressed;
-
-        if (flywheelToggle) {
-
-            // Edge detection for dpad
-            boolean dpadUp = gamepad2.dpad_up;
-            boolean dpadDown = gamepad2.dpad_down;
-
-            if (dpadUp && !lastDpadUp) {
-                targetRPM = BOOST_FLYWHEEL_RPM;
-            }
-
-            if (dpadDown && !lastDpadDown) {
-                targetRPM = BASE_FLYWHEEL_RPM;
-            }
-
-            lastDpadUp = dpadUp;
-            lastDpadDown = dpadDown;
-
-            setFlywheelRPM(targetRPM);
-
-        } else {
-            stopFlywheel();
-            targetRPM = BASE_FLYWHEEL_RPM; // reset for next time
-        }
-
-
-        // ================= FLIPPERS =================
-      if(!isFiring){  servo1.setPosition(gamepad1.b ? 1 : 0);
-        if (gamepad1.a) {
-            servo2.setPosition(1);
-        } else {
-            servo2.setPosition(0);
-        }
-        servo3.setPosition(gamepad1.x ? 1 : 0);
-        }
+        // ================= FIRING LOGIC =================
         if (gamepad1.y && !isFiring) {
-            // Latch current colors
-            sensors.reset(); // clear previous latches
-            sensors.update();
-
-            // Start servo sequence based on motif + current sensor colors
-            servos.StartNonSort();
 
             isFiring = true;
-        }
-        if (!isFiring) {
-            servo4.setPosition(0);
-        } else {
-            servo4.setPosition(0.3);
+            intakeLocked = true;  // 🔒 LOCK INTAKE
+            intake.setPower(0);
+
+            sensors.reset();
+            sensors.update();
+
+            servos.StartNonSort();
         }
 
-        // ================= INTAKE AND BACKSPIN =================
+        // Automatically unlock when done
+        if (!servos.isRunning() && isFiring) {
+            isFiring = false;
+            intakeLocked = false;  // 🔓 UNLOCK INTAKE
+        }
+
+        // Stopper logic
+        if (servos.isRunning()) {
+            stopper.setPosition(0.3);
+        } else {
+            stopper.setPosition(0);
+        }
+
+        // ================= INTAKE SYSTEM =================
         boolean intakePressed = gamepad1.left_trigger > 0.5;
         boolean backspinPressed = gamepad1.right_trigger > 0.5;
 
-        if (intakePressed && !lastIntakeTrigger) {
-            intakeToggle = !intakeToggle;
-        }
-        lastIntakeTrigger = intakePressed;
+        if (!intakeLocked) {
 
-        if (backspinPressed) {
-            intake.setPower(1);
-        } else if (intakeToggle) {
-            intake.setPower(-1);
+            if (intakePressed && !lastIntakeTrigger) {
+                intakeToggle = !intakeToggle;
+            }
+            lastIntakeTrigger = intakePressed;
+
+            if (backspinPressed) {
+                intake.setPower(1);
+            } else if (intakeToggle) {
+                intake.setPower(-1);
+            } else {
+                intake.setPower(0);
+            }
+
         } else {
-            intake.setPower(0);
+            intake.setPower(0);  // Force off if locked
         }
-//lift Servos
+
+        // ================= LIFT TOGGLE =================
         boolean frontPressed = gamepad2.left_trigger > 0.5;
+
         if (frontPressed && !lastLiftToggle) {
             liftToggle = !liftToggle;
         }
         lastLiftToggle = frontPressed;
 
-        if (frontPressed){
-             lift2.setPosition(0.52);
-             lift1.setPosition(0.5);
-         }
-// Set intake power based on toggles
-        // ================= TELEMETRY =================
-        if (servos.isRunning()) {
-            servos.loop();
-            telemetry.addData("Firing servo index", servos.getIndex());
-        } else if (isFiring) {
-            // Sequence finished, reset for next intake
-            servos.stop();
-            sensors.reset(); // optional: clear previous colors so next update re-latches
-            isFiring = false;
-            telemetry.addLine("Sequence complete. Ready to fire again.");
+        if (liftToggle) {
+            lift1.setPosition(0.5);
+            lift2.setPosition(0.52);
+        } else {
+            lift1.setPosition(0.9);
+            lift2.setPosition(0.92);
         }
-        telemetry.addData("Target RPM", targetRPM);
-        telemetry.addData("Turret Encoder", turret.getCurrentPosition());
-        telemetry.addData("Turret Angle (deg)", currentAngleDeg);
-        telemetry.addData("Turret Power", power);
-        telemetry.addData("turretPosition", turret.getCurrentPosition());
-        telemetry.update();
-    }
 
-    private void setFlywheelRPM(double rpm) {
-        double ticksPerSecond = (rpm * TICKS_PER_REV) / 60.0;
-        leftFlywheel.setVelocityPIDFCoefficients(0.022,0,0,13.6);
-        leftFlywheel.setVelocity(ticksPerSecond);
-        rightFlywheel.setVelocity(ticksPerSecond);
-    }
-    private void stopFlywheel() {
-        leftFlywheel.setVelocity(0);
-        rightFlywheel.setVelocity(0);
+        // ================= TELEMETRY =================
+        telemetry.addData("Current RPM", flywheel.getCurrentRPM());
+        telemetry.addData("Target RPM", flywheel.getTargetRPM());
+        telemetry.addData("Intake Locked", intakeLocked);
+        telemetry.addData("Is Firing", isFiring);
+        telemetry.update();
     }
 }

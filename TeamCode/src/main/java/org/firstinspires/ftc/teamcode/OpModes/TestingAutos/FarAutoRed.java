@@ -68,7 +68,7 @@ public class FarAutoRed extends OpMode {
 
         // Turret
         turret = new OdoAim(hardwareMap, follower, true);
-        flywheel = new FlywheelConstants(hardwareMap, follower);
+        flywheel = new FlywheelConstants(hardwareMap, follower, true);
         // Sensors & servos
         sensors = new ColorSensors();
         sensors.init(hardwareMap);

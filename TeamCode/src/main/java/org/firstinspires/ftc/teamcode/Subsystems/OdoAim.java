@@ -29,11 +29,11 @@ public class OdoAim {
     public static double RADIANSPERTICK = 0.001062;
 
     final Pose REDTARGET = new Pose(152.0, 142.0);
-    final Pose BLUETARGET = new Pose(6.0, 143.0);
+    final Pose BLUETARGET = new Pose(-3, 140.0);
 
     // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.0, 0.0, 0.00, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.008, 0.2);
+    final PIDFController odometryPIDF = new PIDFController(2.4, 0.0, 0.008, 0.2);
 
     double relativeTargetHeading;
     boolean isRed;
@@ -51,6 +51,7 @@ public class OdoAim {
 
         // Declares and sets up turret servos
         yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
+        yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         yawMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Declares and sets up limelight
