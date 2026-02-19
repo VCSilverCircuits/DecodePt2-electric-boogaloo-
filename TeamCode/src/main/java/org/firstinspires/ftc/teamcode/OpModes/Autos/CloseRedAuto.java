@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 @Autonomous(name = "Red Auto Shoot")
-public class RedAuto extends OpMode {
+public class CloseRedAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;

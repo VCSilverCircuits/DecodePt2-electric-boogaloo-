@@ -357,7 +357,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 
 @Autonomous(name = "Blue Auto Shoot")
-public class BlueAuto extends OpMode {
+public class CloseBlueAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer;

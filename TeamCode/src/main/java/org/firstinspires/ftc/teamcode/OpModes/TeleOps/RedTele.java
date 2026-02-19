@@ -180,12 +180,13 @@ public class RedTele extends OpMode {
         }
 
         // ================= LIFT TOGGLE =================
-        boolean frontPressed = gamepad2.left_trigger > 0.5;
+        boolean liftPressed = gamepad2.dpad_up;   // change button if you want
 
-        if (frontPressed && !lastLiftToggle) {
+        if (liftPressed && !lastLiftToggle) {
             liftToggle = !liftToggle;
         }
-        lastLiftToggle = frontPressed;
+
+        lastLiftToggle = liftPressed;
 
         if (liftToggle) {
             lift1.setPosition(0.5);
@@ -194,6 +195,7 @@ public class RedTele extends OpMode {
             lift1.setPosition(0.9);
             lift2.setPosition(0.92);
         }
+
 
         // ================= TELEMETRY =================
         telemetry.addData("Current RPM", flywheel.getCurrentRPM());

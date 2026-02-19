@@ -18,7 +18,7 @@ public class TeleFlywheelConstants {
     // ================= LINEAR REGRESSION CONSTANTS =================
 
     // RPM Regression
-    private static final double RPM_SLOPE = 21.35148;
+    private static final double RPM_SLOPE = 30;
     private static final double RPM_INTERCEPT = 2434.33841;
 
     // Hood Regression
@@ -55,7 +55,7 @@ public class TeleFlywheelConstants {
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        VelocityPIDF = new PIDFController(0.0085, 0.007, 0, 0.0);
+        VelocityPIDF = new PIDFController(0.0085, 0.007, 0, 0.0008);
 
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
