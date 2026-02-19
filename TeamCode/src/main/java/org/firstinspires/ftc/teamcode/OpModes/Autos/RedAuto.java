@@ -97,10 +97,9 @@ public class RedAuto extends OpMode {
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
         servo4 = hardwareMap.get(Servo.class, "stopper");
-        servo1.setPosition(0);
-        servo2.setPosition(0);
-        servo3.setPosition(0);
-
+        servo1.setPosition(0.05);
+        servo2.setPosition(0.05);
+        servo3.setPosition(0.05);
         // Intake
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -215,7 +214,7 @@ public class RedAuto extends OpMode {
                         //0
                     }
                     if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
-                        servo1.setPosition(0);
+                        servo1.setPosition(0.05);
                         //0.45
                         pathTimer.resetTimer();
                         pathState = 3;
@@ -230,7 +229,7 @@ public class RedAuto extends OpMode {
                         servo2.setPosition(1);
                     }
                     if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
-                        servo2.setPosition(0);
+                        servo2.setPosition(0.05);
                         pathTimer.resetTimer();
                         pathState = 4;
                     }
@@ -244,10 +243,10 @@ public class RedAuto extends OpMode {
                         servo3.setPosition(1);
                     }
                     if (pathTimer.getElapsedTimeSeconds() >= 0.8) {
-                        servo3.setPosition(0);
+                        servo3.setPosition(0.05);
                         pathTimer.resetTimer();
                         intake.setPower(-1);
-                        servo4.setPosition(0);
+                        servo4.setPosition(0.05);
 
                         // increment timesShot once
                         timesShot++;

@@ -23,7 +23,7 @@ public class MotifShooterTeleOp extends LinearOpMode {
 
         servos = new ServoGroup(
             hardwareMap,
-            "frontFlipper", "backFlipper", "leftFlipper"
+            "frontFlipper", "backFlipper", "leftFlipper", "stopper"
         );
 
         telemetry.addLine("Ready. Press 'A' to fire sequence.");

@@ -8,15 +8,15 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerRed;
+import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name="Red TeleOp (Old)")
-public class OldRedTele extends OpMode {
-    AprilTagTurretControllerRed turretController;
+@TeleOp(name="Blue TeleOp (Old)")
+public class OldBlueTele extends OpMode {
+    AprilTagTurretControllerBlue turretController;
     ColorSensors sensors;
     private ServoGroup servos;
     private boolean isFiring = false;
@@ -34,9 +34,9 @@ public class OldRedTele extends OpMode {
 
     // ================= SHOOTER =================
     private DcMotorEx leftFlywheel, rightFlywheel;
-   // private Servo hoodServo;
+    // private Servo hoodServo;
     private double targetRPM = 0;
-   // private double hoodPosition = 0.5;
+    // private double hoodPosition = 0.5;
     private static final double HOOD_INCREMENT = 0.01;
     DualMotor flywheel = new DualMotor(leftFlywheel, rightFlywheel);
     private boolean flywheelToggle;
@@ -86,7 +86,7 @@ public class OldRedTele extends OpMode {
         leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-      //  hoodServo = hardwareMap.get(Servo.class, "shooterAngler");
+        //  hoodServo = hardwareMap.get(Servo.class, "shooterAngler");
         flywheel = new DualMotor(leftFlywheel, rightFlywheel);
         flywheel.setDirections(
             DcMotorSimple.Direction.REVERSE,
@@ -112,7 +112,7 @@ public class OldRedTele extends OpMode {
         follower.update();
 
         // --- hood start ---
-     //   hoodServo.setPosition(0);
+        //   hoodServo.setPosition(0);
         servo1.setPosition(0.1);
         servo2.setPosition(0);
         servo3.setPosition(0);
@@ -120,7 +120,7 @@ public class OldRedTele extends OpMode {
         lift1.setPosition(0.9);
         lift2.setPosition(0.92);
 
-        turretController = new AprilTagTurretControllerRed(hardwareMap);
+        turretController = new AprilTagTurretControllerBlue(hardwareMap);
         turretController.resetController();
 
 
@@ -187,13 +187,13 @@ public class OldRedTele extends OpMode {
 
 
         // ================= FLIPPERS =================
-      if(!isFiring){  servo1.setPosition(gamepad1.b ? 1 : 0);
-        if (gamepad1.a) {
-            servo2.setPosition(1);
-        } else {
-            servo2.setPosition(0);
-        }
-        servo3.setPosition(gamepad1.x ? 1 : 0);
+        if(!isFiring){  servo1.setPosition(gamepad1.b ? 1 : 0);
+            if (gamepad1.a) {
+                servo2.setPosition(1);
+            } else {
+                servo2.setPosition(0);
+            }
+            servo3.setPosition(gamepad1.x ? 1 : 0);
         }
         if (gamepad1.y && !isFiring) {
             // Latch current colors
@@ -235,9 +235,9 @@ public class OldRedTele extends OpMode {
         lastLiftToggle = frontPressed;
 
         if (frontPressed){
-             lift2.setPosition(0.52);
-             lift1.setPosition(0.5);
-         }
+            lift2.setPosition(0.52);
+            lift1.setPosition(0.5);
+        }
 // Set intake power based on toggles
         // ================= TELEMETRY =================
         if (servos.isRunning()) {

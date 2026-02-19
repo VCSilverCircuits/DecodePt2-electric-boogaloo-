@@ -12,10 +12,10 @@ public class AprilTagTurretControllerBlue {
     private static final int TARGET_ID = 20;
 
     // ===== PID =====
-    private static final double kP = 0.08;
+    private static final double kP = 0.06;
     private static final double kD = 0.008;
     private static final double MAX_POWER = 0.8;
-    private static final double DEADBAND_DEG = 1;
+    private static final double DEADBAND_DEG = 1.5;
 
     // ===== LIMITS =====
     private static final double MIN_ANGLE_DEG = -80;
@@ -77,8 +77,21 @@ public class AprilTagTurretControllerBlue {
         }
 
         // No tag visible → stop turret
+        // ==================== RETURN TO ZERO MODE ====================
         hasLock = false;
-        return 0;
+
+// Error is how far turret is from zero
+        double zeroErrorDeg = -currentTurretAngleDeg;
+
+// Small deadband so it doesn't jitter at zero
+        if (Math.abs(zeroErrorDeg) < DEADBAND_DEG) {
+            resetController(); // clear PID memory once centered
+            return 0;
+        }
+
+// Use same PID to return home
+        return pid(zeroErrorDeg);
+
     }
 
     // ==================== PID ====================

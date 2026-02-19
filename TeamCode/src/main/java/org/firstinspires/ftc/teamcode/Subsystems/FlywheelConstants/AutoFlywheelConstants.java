@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Subsystems;
+package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.pedropathing.follower.Follower;
@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class FlywheelConstants {
+public class AutoFlywheelConstants {
 
     private DcMotorEx leftFlywheel, rightFlywheel;
     private Servo hoodServo;
@@ -42,7 +42,7 @@ public class FlywheelConstants {
      * @param follower    Odometry follower
      * @param isRed       TRUE = Red alliance, FALSE = Blue alliance
      */
-    public FlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public AutoFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
 
@@ -55,7 +55,7 @@ public class FlywheelConstants {
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        VelocityPIDF = new PIDFController(0.0085, 0.003, 0, 0.0);
+        VelocityPIDF = new PIDFController(0.0085, 0.007, 0, 0.0);
 
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
@@ -112,8 +112,8 @@ public class FlywheelConstants {
 
         power = Math.max(-1, Math.min(1, power));
 
-        leftFlywheel.setPower(power);
-        rightFlywheel.setPower(power);
+        leftFlywheel.setPower((power)*1.4);
+        rightFlywheel.setPower((power)*1.4);
     }
 
     private void applyHoodAngle(double angleDegrees) {
@@ -123,7 +123,7 @@ public class FlywheelConstants {
         double position = (angleDegrees - minAngle) / (maxAngle - minAngle);
         position = Math.max(0, Math.min(1, position));
 
-        hoodServo.setPosition(position);
+        hoodServo.setPosition((position) * 1.2);
     }
 
     private void stop() {

@@ -9,7 +9,8 @@ import java.util.List;
 
 public class ServoGroup {
 
-    private final Servo s1, s2, s3;
+    private final Servo s1, s2, s3, stopper;
+
     private final List<Servo> firingOrder = new ArrayList<>();
 
     private int index = 0;
@@ -24,11 +25,15 @@ public class ServoGroup {
     private static final long DOWN_DELAY_MS = 275;
 
     public ServoGroup(HardwareMap hw,
-                      String servo1, String servo2, String servo3) {
+                      String servo1, String servo2, String servo3, String stopper1) {
 
+        stopper = hw.get(Servo.class,stopper1);
         s1 = hw.get(Servo.class, servo1);
         s2 = hw.get(Servo.class, servo2);
         s3 = hw.get(Servo.class, servo3);
+        s1.setPosition(0.05);
+        s2.setPosition(0.05);
+        s3.setPosition(0.05);
 
         stop();
     }
@@ -37,6 +42,8 @@ public class ServoGroup {
        🔫 FORCED SEQUENTIAL MODE (s1 → s2 → s3)
        ========================================================= */
     public void StartNonSort() {
+        running = true;
+        stopper.setPosition(0.3);
         firingOrder.clear();
         index = 0;
         servoUp = false;
@@ -133,14 +140,28 @@ public class ServoGroup {
        ⏱ TIMING LOOP
        ========================================================= */
     public void loop() {
-        if (!running || index >= firingOrder.size()) return;
+
+        // If not running, keep stopper closed and exit
+        if (!running) {
+            stopper.setPosition(0);
+            return;
+        }
+
+        stopper.setPosition(0.3);
+
+        // ✅ SEQUENCE FINISHED
+        if (index >= firingOrder.size()) {
+            running = false;
+            stopper.setPosition(0);
+            return;
+        }
 
         long now = System.currentTimeMillis();
         Servo current = firingOrder.get(index);
 
         if (servoUp) {
             if (now - lastTime >= UP_DURATION_MS) {
-                current.setPosition(0);
+                current.setPosition(0.05);
                 servoUp = false;
                 lastTime = now;
                 index++;
@@ -152,7 +173,8 @@ public class ServoGroup {
                 lastTime = now;
             }
         }
-    }
+
+}
 
     public boolean isRunning() {
         return running && index < firingOrder.size();
@@ -173,8 +195,8 @@ public class ServoGroup {
         firingOrder.clear();
         lastAddedServo = null;
 
-        s1.setPosition(0);
-        s2.setPosition(0);
-        s3.setPosition(0);
+        s1.setPosition(0.05);
+        s2.setPosition(0.05);
+        s3.setPosition(0.05);
     }
 }

@@ -12,147 +12,143 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-// Everything is in RADIANS
 @Configurable
 public class OdoAim {
-    DcMotorEx yawMotor;
-    Follower follower;
-    Limelight3A limelight;
-    double MAX_TURRET_RAD = Math.toRadians(175);
-    double MIN_TURRET_RAD = Math.toRadians(-90 );
 
-    double turretPosition;
+    private DcMotorEx yawMotor;
+    private Follower follower;
+    private Limelight3A limelight;
 
-    double isLLgetting;
+    private double MAX_TURRET_RAD = Math.toRadians(175);
+    private double MIN_TURRET_RAD = Math.toRadians(-90);
 
-    // TODO: TUNE THIS VALUE!
+    private double turretPosition;
+    private double isLLgetting;
+
     public static double RADIANSPERTICK = 0.001062;
 
-    final Pose REDTARGET = new Pose(152.0, 142.0);
-    final Pose BLUETARGET = new Pose(-3, 140.0);
+    // ================= OFFSET SYSTEM =================
+    private double manualOffsetRad = 0.0;
+    public static double OFFSET_STEP_RAD = Math.toRadians(1.0);
 
-    // TODO: Tune these. Expect very different P values!
-    final PIDFController limelightPIDF = new PIDFController(0.0, 0.0, 0.00, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(2.4, 0.0, 0.008, 0.2);
+    private Pose REDTARGET = new Pose(152.0, 142.0);
+    private Pose BLUETARGET = new Pose(-3, 140.0);
 
-    double relativeTargetHeading;
-    boolean isRed;
+    private final PIDFController limelightPIDF =
+        new PIDFController(0.06, 0.0, 0.008, 0.0);
 
-    /**
-     *
-     * @param hardwareMap Used to retrieve hardware from configuration file in driver hub
-     * @param follower    Used as fallback to determine distance to target using odometry
-     * @param isRed       Set per alliance color
-     */
+    private final PIDFController odometryPIDF =
+        new PIDFController(2.4, 0.0, 0.008, 0.2);
+
+    private double relativeTargetHeading;
+    private boolean isRed;
+
     public OdoAim(HardwareMap hardwareMap, Follower follower, boolean isRed) {
-        // Stores follower and alliance color
+
         this.follower = follower;
         this.isRed = isRed;
 
-        // Declares and sets up turret servos
         yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
         yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         yawMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Declares and sets up limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(isRed ? 0 : 1);
+        limelight.pipelineSwitch(isRed ? 4 : 0);
         limelight.start();
     }
 
-    /**
-     * Calculates relative position of the target using odometry
-     */
+    // ================= UPDATE TARGET ANGLE =================
     public void update() {
-        // Calculate turret angle relative to the robot chassis
+
         turretPosition = yawMotor.getCurrentPosition() * RADIANSPERTICK;
 
-        // Get target coordinates
-        double targetX = (isRed ? REDTARGET.getX() : BLUETARGET.getX());
-        double targetY = (isRed ? REDTARGET.getY() : BLUETARGET.getY());
+        double targetX = isRed ? REDTARGET.getX() : BLUETARGET.getX();
+        double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
 
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
         double robotHeading = follower.getHeading();
 
-        // Calculate the field-centric angle to the target
-        double fieldAngleToTarget = Math.atan2(targetY - robotY, targetX - robotX);
+        double fieldAngleToTarget =
+            Math.atan2(targetY - robotY, targetX - robotX);
 
-        // Convert to robot-centric angle (where the turret needs to point)
-        // Angle Wrapping: ensures we calculate the shortest distance (-PI to PI)
-        relativeTargetHeading = AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
+        relativeTargetHeading =
+            AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
     }
 
-    /**
-     * Aim using limelight or odometry as fallback
-     */
-    public void aim() {
-        limelight.start();
-        // Retrieve limelight data
-        LLResult llResult = limelight.getLatestResult();
-
-        if (llResult != null && llResult.isValid()) {
-            // Limelight tx is in degrees. Target is 0.
-            double power = limelightPIDF.calculate(llResult.getTx(), 0);
-            // power = normalizePower(power);
-            isLLgetting = power;
-            yawMotor.setPower(power);
-        } else {
-            // Fallback to Odometry
-            // We want turretPosition to match relativeTargetHeading
-            double power = odometryPIDF.calculate(turretPosition, relativeTargetHeading);
-            power = normalizePower(power);
-
-            yawMotor.setPower(power);
-        }
-    }
+    // ================= ODOMETRY AIM WITH OFFSET =================
     public void odoAim() {
 
-        double targetAngle = relativeTargetHeading;
+        double targetAngle =
+            AngleUnit.normalizeRadians(relativeTargetHeading + manualOffsetRad);
 
-        // -------------------------------------------------
-        // HARD CLAMP TARGET TO PHYSICAL LIMITS
-        // -------------------------------------------------
-
-        if (targetAngle > MAX_TURRET_RAD) {
-            targetAngle = MAX_TURRET_RAD;
-        }
-        else if (targetAngle < MIN_TURRET_RAD) {
-            targetAngle = MIN_TURRET_RAD;
-        }
-
-        // -------------------------------------------------
-        // PID Toward Clamped Target
-        // -------------------------------------------------
+        // HARD LIMIT CLAMP
+        targetAngle = Math.max(MIN_TURRET_RAD,
+            Math.min(MAX_TURRET_RAD, targetAngle));
 
         double power = odometryPIDF.calculate(turretPosition, targetAngle);
 
         yawMotor.setPower(normalizePower(power));
     }
 
+    // ================= LIMELIGHT AIM =================
+    public void aim() {
 
-    /**
-     * Stops turret and limelight when not aiming
-     */
+        LLResult llResult = limelight.getLatestResult();
+
+        if (llResult != null && llResult.isValid()) {
+
+            double power = limelightPIDF.calculate(llResult.getTx(), 0);
+            isLLgetting = power;
+            yawMotor.setPower(normalizePower(power));
+
+        } else {
+            odoAim();
+        }
+    }
+
+    // ================= OFFSET CONTROLS =================
+    public void adjustOffset(boolean leftPressed, boolean rightPressed) {
+
+        if (leftPressed) {
+            manualOffsetRad += OFFSET_STEP_RAD;
+        }
+
+        if (rightPressed) {
+            manualOffsetRad -= OFFSET_STEP_RAD;
+        }
+
+        // Prevent offset from ever exceeding turret limits
+        manualOffsetRad = Math.max(MIN_TURRET_RAD,
+            Math.min(MAX_TURRET_RAD, manualOffsetRad));
+    }
+
+    public void resetOffset() {
+        manualOffsetRad = 0.0;
+    }
+
+    public double getOffsetRadians() {
+        return manualOffsetRad;
+    }
+
+    public double getOffsetDegrees() {
+        return Math.toDegrees(manualOffsetRad);
+    }
+
+    // ================= IDLE =================
     public void idle() {
-        // Keep turret centered forward (position 0 relative to robot)
-        double power = normalizePower(odometryPIDF.calculate(turretPosition, 0));
+        double power =
+            normalizePower(odometryPIDF.calculate(turretPosition, 0));
         yawMotor.setPower(power);
         limelight.pause();
     }
 
-    public void adjustTurret(double power) {
-        yawMotor.setPower(power);
-    }
-
-    /**
-     * Avoid using this, use idle() method instead
-     */
     public void stop() {
         yawMotor.setPower(0);
         limelight.stop();
     }
-    public void resetEncoder(){
+
+    public void resetEncoder() {
         yawMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
     }
 
@@ -160,9 +156,9 @@ public class OdoAim {
         return Math.max(-1, Math.min(1, power));
     }
 
-
+    // ================= GETTERS =================
     public double getTurretPosition() {
-        return yawMotor.getCurrentPosition();
+        return turretPosition;
     }
 
     public double getRelativeTargetHeading() {
@@ -173,4 +169,3 @@ public class OdoAim {
         return isLLgetting;
     }
 }
-
