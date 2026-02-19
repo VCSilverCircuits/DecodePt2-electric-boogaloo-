@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
+package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -107,6 +107,9 @@ public class CompSubSystemTest extends OpMode {
             liftToggle = !liftToggle;
         }
         lastLiftToggle = frontPressed;
+        telemetry.addData("currentRPM", flywheel.getCurrentRPM());
+        telemetry.addData("targetRPM", flywheel.getTargetRPM());
+        telemetry.update();
 
         if (liftToggle) {
             lift2.setPosition(0.52);

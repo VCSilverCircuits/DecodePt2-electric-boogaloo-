@@ -28,12 +28,12 @@ public class OdoAim {
     // TODO: TUNE THIS VALUE!
     public static double RADIANSPERTICK = 0.001062;
 
-    final Pose REDTARGET = new Pose(150.0, 139.0);
+    final Pose REDTARGET = new Pose(152.0, 142.0);
     final Pose BLUETARGET = new Pose(6.0, 143.0);
 
     // TODO: Tune these. Expect very different P values!
     final PIDFController limelightPIDF = new PIDFController(0.0, 0.0, 0.00, 0.0);
-    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.005, 0.2);
+    final PIDFController odometryPIDF = new PIDFController(2.2, 0.0, 0.008, 0.2);
 
     double relativeTargetHeading;
     boolean isRed;
