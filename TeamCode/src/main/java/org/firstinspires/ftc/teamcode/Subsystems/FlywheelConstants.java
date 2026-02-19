@@ -24,8 +24,8 @@ public class FlywheelConstants {
     private static final double RPM_INTERCEPT = 2434.33841;
 
     // Hood Regression (REPLACE WITH YOUR ACTUAL VALUES)
-    private static final double HOOD_SLOPE = -0.50915;      // example
-    private static final double HOOD_INTERCEPT = 128.32211;    // example
+    private static final double HOOD_SLOPE = -0.880766;      // example
+    private static final double HOOD_INTERCEPT = 139.12875;    // example
 
     private final double velocityCompGain = 2.0;
     private final double goalX;
@@ -50,7 +50,7 @@ public class FlywheelConstants {
 
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        VelocityPIDF = new PIDFController(0.0085, 0.005, 0.0001, 0.0);
+        VelocityPIDF = new PIDFController(0.0085, 0.003, 0, 0.0);
 
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
