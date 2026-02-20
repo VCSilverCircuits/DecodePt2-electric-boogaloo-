@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.TeleFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp(name = "Red Tele")
@@ -48,6 +49,8 @@ public class RedTele extends OpMode {
     public void init() {
 
         follower = Constants.createFollower(hardwareMap);
+        follower.setPose(PoseStorage.currentPose);
+
         turret = new OdoAim(hardwareMap, follower, true);
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 

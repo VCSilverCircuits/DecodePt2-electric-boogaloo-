@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 @Autonomous(name = "Far Auto Red")
@@ -167,6 +168,7 @@ public class FarAutoRed extends OpMode {
                 pathState = 2;
             break;
                case 7:
+                   PoseStorage.currentPose = follower.getPose();
                     requestOpModeStop();
                     break;
             }

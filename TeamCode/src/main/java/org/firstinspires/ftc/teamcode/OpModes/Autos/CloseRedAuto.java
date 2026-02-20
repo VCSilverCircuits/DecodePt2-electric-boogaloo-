@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerRed;
 import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 @Autonomous(name = "Red Auto Shoot")
@@ -463,6 +464,7 @@ public class CloseRedAuto extends OpMode {
                     if (leaveTimer.getElapsedTimeSeconds() >= 28){
                         follower.followPath(endPoseToLineup3);
                     }
+                    PoseStorage.currentPose = follower.getPose();
                     break;
             }
             return pathState;

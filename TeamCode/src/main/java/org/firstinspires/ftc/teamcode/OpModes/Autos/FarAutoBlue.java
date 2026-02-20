@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 @Autonomous(name = "Far Auto Blue")
@@ -38,10 +39,10 @@ public class FarAutoBlue extends OpMode {
     private int pathState = 0;
 
     // Poses
-    private static final Pose startPose = new Pose(84.037, 10.019, Math.toRadians(0));
-    private static final Pose firingPose = new Pose(86, 26, Math.toRadians(0));
+    private static final Pose startPose = new Pose(84.037, 10.019, Math.toRadians(180));
+    private static final Pose firingPose = new Pose(86, 26, Math.toRadians(180));
     private static final Pose bezierPoint = new Pose(86.05597663551401, 38.644859813084125);
-    private static final Pose intake1 = new Pose(128.897, 36, Math.toRadians(0));
+    private static final Pose intake1 = new Pose(128.897, 36, Math.toRadians(180));
 
     @Override
     public void init() {
@@ -53,8 +54,8 @@ public class FarAutoBlue extends OpMode {
         mecanumConstants = new MecanumConstants();
 
         // Turret
-        turret = new OdoAim(hardwareMap, follower, true);
-        flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
+        turret = new OdoAim(hardwareMap, follower, false);
+        flywheel = new AutoFlywheelConstants(hardwareMap, follower, false);
         // Sensors & servos
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
@@ -168,6 +169,7 @@ public class FarAutoBlue extends OpMode {
                     pathState = 2;
                     break;
                 case 7:
+                    PoseStorage.currentPose = follower.getPose();
                     requestOpModeStop();
                     break;
             }

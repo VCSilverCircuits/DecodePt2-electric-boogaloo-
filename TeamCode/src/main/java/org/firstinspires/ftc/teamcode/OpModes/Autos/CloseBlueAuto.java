@@ -353,6 +353,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTurretControllerBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
+import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 
@@ -834,6 +835,7 @@ public class CloseBlueAuto extends OpMode {
                     if (leaveTimer.getElapsedTimeSeconds() >= 28){
                         follower.followPath(endPoseToLineup3);
                     }
+                    PoseStorage.currentPose = follower.getPose();
                     break;
             }
             return pathState;
