@@ -24,15 +24,16 @@ public class OdoAim {
 
     private double turretPosition;
     private double isLLgetting;
+    private Pose targetPose; // current target, can change via D-pad
 
     public static double RADIANSPERTICK = 0.001062;
 
     // ================= OFFSET SYSTEM =================
     private double manualOffsetRad = 0.0;
-    public static double OFFSET_STEP_RAD = Math.toRadians(1.0);
+    public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-    private Pose REDTARGET = new Pose(152.0, 142.0);
-    private Pose BLUETARGET = new Pose(-3, 140.0);
+     Pose REDTARGET = new Pose(152.0 , 142.0 );
+     Pose BLUETARGET = new Pose(-3, 140.0);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -42,11 +43,13 @@ public class OdoAim {
 
     private double relativeTargetHeading;
     private boolean isRed;
+    double targetX = isRed ? REDTARGET.getX() : BLUETARGET.getX();
+    double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
 
     public OdoAim(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
-        this.isRed = isRed;
+        this.targetPose = isRed ? REDTARGET : BLUETARGET;
 
         yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
         yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -59,23 +62,18 @@ public class OdoAim {
 
     // ================= UPDATE TARGET ANGLE =================
     public void update() {
-
         turretPosition = yawMotor.getCurrentPosition() * RADIANSPERTICK;
-
-        double targetX = isRed ? REDTARGET.getX() : BLUETARGET.getX();
-        double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
 
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
         double robotHeading = follower.getHeading();
 
         double fieldAngleToTarget =
-            Math.atan2(targetY - robotY, targetX - robotX);
+            Math.atan2(targetPose.getY() - robotY, targetPose.getX() - robotX);
 
         relativeTargetHeading =
             AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
     }
-
     // ================= ODOMETRY AIM WITH OFFSET =================
     public void odoAim() {
 
@@ -108,19 +106,15 @@ public class OdoAim {
     }
 
     // ================= OFFSET CONTROLS =================
-    public void adjustOffset(boolean leftPressed, boolean rightPressed) {
-
-        if (leftPressed) {
-            manualOffsetRad += OFFSET_STEP_RAD;
+    public void changeTarget(boolean dpadRight, boolean dpadLeft) {
+        if (dpadRight) {
+            // Example: move turret target slightly forward in X
+            targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
         }
-
-        if (rightPressed) {
-            manualOffsetRad -= OFFSET_STEP_RAD;
+        if (dpadLeft) {
+            // Example: move turret target slightly backward in X
+            targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
         }
-
-        // Prevent offset from ever exceeding turret limits
-        manualOffsetRad = Math.max(MIN_TURRET_RAD,
-            Math.min(MAX_TURRET_RAD, manualOffsetRad));
     }
 
     public void resetOffset() {
@@ -167,5 +161,23 @@ public class OdoAim {
 
     public double checkLL() {
         return isLLgetting;
+    }
+    public void syncToCurrentPosition() {
+        turretPosition = yawMotor.getCurrentPosition() * RADIANSPERTICK;
+
+        // Make PID think we are already at target
+        relativeTargetHeading = turretPosition;
+
+        manualOffsetRad = 0.0;
+    }
+    public void recalibration(Follower follower) {
+        this.follower = follower;
+
+        Pose currentPose = follower.getPose();
+
+        double newX = currentPose.getX() - 13.0;
+        double newY = currentPose.getY() - 12.0;
+
+        targetPose = new Pose(newX, newY);
     }
 }

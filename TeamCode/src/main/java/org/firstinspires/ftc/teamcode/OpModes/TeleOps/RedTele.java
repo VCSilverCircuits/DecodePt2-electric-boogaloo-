@@ -17,11 +17,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp(name = "Red Tele")
 public class RedTele extends OpMode {
 
-    private static final Pose startPose = new Pose(84.037, 10.019, Math.toRadians(0));
-
     private TeleFlywheelConstants flywheel;
     private Follower follower;
-    private OdoAim turret;
+    private OdoAim odoAim;
     private ServoGroup servos;
     private ColorSensors sensors;
 
@@ -40,7 +38,10 @@ public class RedTele extends OpMode {
     private boolean isFiring = false;
     private boolean intakeLocked = false;
 
-    // ================= TURRET OFFSET EDGE DETECTION =================
+    // ================= TURRET CONTROL =================
+    private boolean turretTrackingEnabled = false;
+    private boolean lastTurretButton = false;
+
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
     private boolean lastDpadDown = false;
@@ -51,7 +52,11 @@ public class RedTele extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(PoseStorage.currentPose);
 
-        turret = new OdoAim(hardwareMap, follower, true);
+        odoAim = new OdoAim(hardwareMap, follower, true);
+
+        // Initially idle, hold current position
+        odoAim.idle();
+
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -87,7 +92,7 @@ public class RedTele extends OpMode {
     @Override
     public void start() {
         follower.startTeleopDrive();
-        follower.setStartingPose(startPose);
+        follower.setStartingPose(PoseStorage.currentPose);
         flywheel.enable();
     }
 
@@ -105,40 +110,77 @@ public class RedTele extends OpMode {
         follower.update();
         flywheel.update(-gamepad1.left_stick_y * 50);
 
-        // ================= TURRET UPDATE =================
-        turret.update();
+        odoAim.update();
+        servos.loop();
 
-        // --------- D-PAD OFFSET CONTROL ----------
+        // -------- TOGGLE TRACKING --------
+        boolean turretButtonPressed = gamepad1.left_bumper;
+
+        if (turretButtonPressed && !lastTurretButton) {
+            turretTrackingEnabled = !turretTrackingEnabled;
+
+            if (turretTrackingEnabled) {
+                // Reset tracking zero to current idle position
+                odoAim.syncToCurrentPosition();
+            } else {
+                // When turning OFF, hold current position
+                odoAim.idle();
+            }
+        }
+        lastTurretButton = turretButtonPressed;
+
+        // -------- OFFSET CONTROLS --------
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            turret.adjustOffset(true, false);
+            odoAim.changeTarget(true, false);
         }
-
         if (gamepad1.dpad_right && !lastDpadRight) {
-            turret.adjustOffset(false, true);
-        }
-
-        // Reset offset
-        if (gamepad1.dpad_down && !lastDpadDown) {
-            turret.resetOffset();
+            odoAim.changeTarget(false, true);
         }
 
         lastDpadLeft = gamepad1.dpad_left;
         lastDpadRight = gamepad1.dpad_right;
         lastDpadDown = gamepad1.dpad_down;
 
-        turret.odoAim();
-        servos.loop();
+        // -------- AIM ONLY IF ENABLED --------
+        if (turretTrackingEnabled) {
+            odoAim.odoAim();
+        } else {
+            odoAim.idle();
+        }
+        if (gamepad1.dpad_down){
+            odoAim.recalibration(follower);
+            flywheel.recalibration(follower);
+        }
 
-        // ================= FIRING LOGIC =================
+
+        // ================= INTAKE =================
+        boolean intakePressed = gamepad1.left_trigger > 0.5;
+        boolean backspinPressed = gamepad1.right_trigger > 0.5;
+
+        if (!intakeLocked) {
+            if (intakePressed && !lastIntakeTrigger) {
+                intakeToggle = !intakeToggle;
+            }
+            lastIntakeTrigger = intakePressed;
+
+            if (backspinPressed) {
+                intake.setPower(1);
+            } else if (intakeToggle) {
+                intake.setPower(-1);
+            } else {
+                intake.setPower(0);
+            }
+        } else {
+            intake.setPower(0);
+        }
+
+        // ================= FIRING =================
         if (gamepad1.y && !isFiring) {
-
             isFiring = true;
             intakeLocked = true;
             intake.setPower(0);
-
             sensors.reset();
             sensors.update();
-
             servos.StartNonSort();
         }
 
@@ -159,36 +201,12 @@ public class RedTele extends OpMode {
             servo3.setPosition(gamepad1.x ? 1 : 0);
         }
 
-        // ================= INTAKE SYSTEM =================
-        boolean intakePressed = gamepad1.left_trigger > 0.5;
-        boolean backspinPressed = gamepad1.right_trigger > 0.5;
-
-        if (!intakeLocked) {
-
-            if (intakePressed && !lastIntakeTrigger) {
-                intakeToggle = !intakeToggle;
-            }
-            lastIntakeTrigger = intakePressed;
-
-            if (backspinPressed) {
-                intake.setPower(1);
-            } else if (intakeToggle) {
-                intake.setPower(-1);
-            } else {
-                intake.setPower(0);
-            }
-
-        } else {
-            intake.setPower(0);
-        }
-
         // ================= LIFT TOGGLE =================
-        boolean liftPressed = gamepad2.dpad_up;   // change button if you want
+        boolean liftPressed = gamepad2.dpad_up;
 
         if (liftPressed && !lastLiftToggle) {
             liftToggle = !liftToggle;
         }
-
         lastLiftToggle = liftPressed;
 
         if (liftToggle) {
@@ -199,14 +217,9 @@ public class RedTele extends OpMode {
             lift2.setPosition(0.92);
         }
 
-
         // ================= TELEMETRY =================
-        telemetry.addData("Current RPM", flywheel.getCurrentRPM());
-        telemetry.addData("Target RPM", flywheel.getTargetRPM());
-        telemetry.addData("Turret Offset (deg)", turret.getOffsetDegrees());
-        telemetry.addData("Relative Target (deg)", Math.toDegrees(turret.getRelativeTargetHeading()));
-        telemetry.addData("Intake Locked", intakeLocked);
-        telemetry.addData("Is Firing", isFiring);
+        telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
+        telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
         telemetry.update();
     }
 }

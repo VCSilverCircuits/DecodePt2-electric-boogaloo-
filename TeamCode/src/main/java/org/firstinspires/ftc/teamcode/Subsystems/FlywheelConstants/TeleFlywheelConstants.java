@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -22,14 +23,19 @@ public class TeleFlywheelConstants {
     private static final double RPM_INTERCEPT = 2434.33841;
 
     // Hood Regression
-    private static final double HOOD_SLOPE = -0.880766;
+    private static final double HOOD_SLOPE = -0.850766;
     private static final double HOOD_INTERCEPT = 139.12875;
+    private Pose targetPose; // current target, can change via D-pad
+    double REDTARGETX = 152;
+    double REDTARGETY = 142;
+    double BLUETARGETX = -3;
+    double BLUETARGETY = 140;
+    Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
+    Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
 
     private final double velocityCompGain = 2.0;
 
     // Alliance-Based Target Positions
-    private final double goalX;
-    private final double goalY;
 
     private Follower follower;
 
@@ -45,6 +51,7 @@ public class TeleFlywheelConstants {
     public TeleFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
+        this.targetPose = isRed ? REDTARGET : BLUETARGET;
 
         leftFlywheel = hardwareMap.get(DcMotorEx.class, "Output1");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "Output2");
@@ -60,14 +67,6 @@ public class TeleFlywheelConstants {
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        // ================= ALLIANCE TARGET =================
-        if (isRed) {
-            goalX = 152.0;
-            goalY = 142.0;
-        } else {
-            goalX = 0;
-            goalY = 142.0;
-        }
     }
 
     public void update(double robotForwardVelocity) {
@@ -80,8 +79,8 @@ public class TeleFlywheelConstants {
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
-        double dx = goalX - robotX;
-        double dy = goalY - robotY;
+        double dx = targetPose.getX() - robotX;
+        double dy = targetPose.getY() - robotY;
         double distance = Math.hypot(dx, dy);
 
         double baseRPM = getRegressionRPM(distance);
@@ -160,5 +159,15 @@ public class TeleFlywheelConstants {
 
     public boolean atSpeed(double tolerance) {
         return Math.abs(getCurrentRPM() - targetRPM) < tolerance;
+    }
+    public void recalibration(Follower follower) {
+        this.follower = follower;
+
+        Pose currentPose = follower.getPose();
+
+        double newX = currentPose.getX() - 11.0;
+        double newY = currentPose.getY() - 15.0;
+
+        targetPose = new Pose(newX, newY);
     }
 }

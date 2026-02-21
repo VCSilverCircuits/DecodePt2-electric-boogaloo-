@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
 @Autonomous(name = "Red Auto Shoot")
 public class CloseRedAuto extends OpMode {
-
+    PoseStorage poseStorage;
     private Follower follower;
     private Timer pathTimer;
     private Timer leaveTimer;
@@ -86,6 +86,7 @@ public class CloseRedAuto extends OpMode {
         follower.setMaxPower(1);
         follower.setStartingPose(startPose);
         follower.update();
+        poseStorage = new PoseStorage(follower);
 
         // Turret
         turret = hardwareMap.get(DcMotorEx.class, "turretRotation");
@@ -117,7 +118,7 @@ public class CloseRedAuto extends OpMode {
     public void loop() {
         follower.update();
         Pose robotPose = follower.getPose();
-
+        poseStorage.Update();
         double currentAngleDeg = turret.getCurrentPosition() * DEGREES_PER_TICK;
         double power = turretController.getTurretPower(currentAngleDeg);
 
@@ -464,7 +465,6 @@ public class CloseRedAuto extends OpMode {
                     if (leaveTimer.getElapsedTimeSeconds() >= 28){
                         follower.followPath(endPoseToLineup3);
                     }
-                    PoseStorage.currentPose = follower.getPose();
                     break;
             }
             return pathState;

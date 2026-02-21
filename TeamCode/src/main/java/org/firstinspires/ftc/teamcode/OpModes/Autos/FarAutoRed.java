@@ -60,6 +60,8 @@ public class FarAutoRed extends OpMode {
         sensors.init(hardwareMap);
 
         servos = new ServoGroup(hardwareMap, "frontFlipper", "backFlipper", "leftFlipper", "stopper");
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         // Timers
         pathTimer = new Timer();
@@ -127,7 +129,7 @@ public class FarAutoRed extends OpMode {
 
 
                 case 2:
-                    if (follower.atPose(firingPose, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (follower.atPose(firingPose, 2, 2) || pathTimer.getElapsedTimeSeconds() > 1.5) {
                          // prevents double start
                             if (!servos.isRunning() && pathTimer.getElapsedTimeSeconds() > 4) {
                                 servos.StartNonSort();
@@ -158,6 +160,7 @@ public class FarAutoRed extends OpMode {
                     if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 5) {
                         pathTimer.resetTimer();  // reset here
                         follow.followPath(intake1ToFiring);
+                        follower.setMaxPower(0.5);
                         pathState = 5;
                     }
                     break;
@@ -169,7 +172,10 @@ public class FarAutoRed extends OpMode {
             break;
                case 7:
                    PoseStorage.currentPose = follower.getPose();
-                    requestOpModeStop();
+                   turret.idle();
+                   if (pathTimer.getElapsedTimeSeconds() > 4){
+                       requestOpModeStop();
+                   }
                     break;
             }
                 return pathState;
