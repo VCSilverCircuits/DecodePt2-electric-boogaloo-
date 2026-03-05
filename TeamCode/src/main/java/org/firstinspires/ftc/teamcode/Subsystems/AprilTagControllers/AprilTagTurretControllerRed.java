@@ -36,7 +36,7 @@ public class AprilTagTurretControllerRed {
 
     public AprilTagTurretControllerRed(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(4);
         limelight.start();
     }
 
