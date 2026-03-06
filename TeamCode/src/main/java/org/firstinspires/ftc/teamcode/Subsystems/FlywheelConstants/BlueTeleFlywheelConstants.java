@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class TeleFlywheelConstants {
+public class BlueTeleFlywheelConstants {
 
     private DcMotorEx leftFlywheel, rightFlywheel;
     private Servo hoodServo;
@@ -20,7 +20,7 @@ public class TeleFlywheelConstants {
 
     // RPM Regression
     private static final double RPM_SLOPE = 21.35148;
-    private static final double RPM_INTERCEPT = 2434.33841;
+    private static final double RPM_INTERCEPT = 2634.33841;
 
     // Hood Regression
     private static final double HOOD_SLOPE = -0.850766;
@@ -48,7 +48,7 @@ public class TeleFlywheelConstants {
      * @param follower    Odometry follower
      * @param isRed       TRUE = Red alliance, FALSE = Blue alliance
      */
-    public TeleFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public BlueTeleFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
         this.targetPose = isRed ? REDTARGET : BLUETARGET;
@@ -165,8 +165,8 @@ public class TeleFlywheelConstants {
 
         Pose currentPose = follower.getPose();
 
-        double newX = currentPose.getX() + 13.0;
-        double newY = currentPose.getY() - 15.0;
+        double newX = currentPose.getX() - 31.0;
+        double newY = currentPose.getY() + 21.0;
 
         targetPose = new Pose(newX, newY);
     }

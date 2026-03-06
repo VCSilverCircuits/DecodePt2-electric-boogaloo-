@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @Configurable
-public class OdoAim {
+public class OdoAimBlue {
 
     private DcMotorEx yawMotor;
     private Follower follower;
@@ -32,8 +32,8 @@ public class OdoAim {
     private double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-     Pose REDTARGET = new Pose(152.0 , 146.0 );
-     Pose BLUETARGET = new Pose(-3, 140.0);
+    Pose REDTARGET = new Pose(152.0 , 146.0 );
+    Pose BLUETARGET = new Pose(-3, 140.0);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -46,7 +46,7 @@ public class OdoAim {
     double targetX = isRed ? REDTARGET.getX() : BLUETARGET.getX();
     double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
 
-    public OdoAim(HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public OdoAimBlue(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
         this.targetPose = isRed ? REDTARGET : BLUETARGET;
@@ -176,18 +176,8 @@ public class OdoAim {
         Pose currentPose = follower.getPose();
 
         double newX = currentPose.getX() + 15.0;
-        double newY = currentPose.getY() - 17.0;
+        double newY = currentPose.getY() + 17.0;
 
         targetPose = new Pose(newX, newY);
-    }
-    public void restoreFromStorage(double storedTurretRadians) {
-
-        turretPosition = storedTurretRadians;
-
-        // Reset PID internal error memory
-        odometryPIDF.reset();
-        limelightPIDF.reset();
-
-        manualOffsetRad = 0.0;
     }
 }
