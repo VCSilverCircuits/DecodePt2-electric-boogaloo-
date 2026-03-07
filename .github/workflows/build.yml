@@ -26,8 +26,4 @@ jobs:
       - name: Build TeamCode debug APK
         run: ./gradlew :TeamCode:assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: DecodeV2-debug
-          path: TeamCode/build/outputs/apk/debug/*.apk
+
