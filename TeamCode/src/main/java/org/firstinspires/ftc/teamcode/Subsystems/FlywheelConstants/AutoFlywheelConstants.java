@@ -19,7 +19,7 @@ public class AutoFlywheelConstants {
 
     // RPM Regression
     private static final double RPM_SLOPE = 21.35148;
-    private static final double RPM_INTERCEPT = 2234.33841;
+    private static final double RPM_INTERCEPT = 1134.33841;
 
     // Hood Regression
     private static final double HOOD_SLOPE = -0.880766;
@@ -55,7 +55,7 @@ public class AutoFlywheelConstants {
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        VelocityPIDF = new PIDFController(0.0085, 0.007, 0, 0.0);
+        VelocityPIDF = new PIDFController(0.008, 0.007, 0, 0.0);
 
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);

@@ -56,8 +56,6 @@ public class RedTele extends OpMode {
 
         odoAim.restoreFromStorage(PoseStorage.turretRadians);
 
-        odoAim.update();
-
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();

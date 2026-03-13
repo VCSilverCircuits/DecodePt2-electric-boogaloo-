@@ -20,15 +20,16 @@ public class MegaTagTesting extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setPose(new Pose(0,0,0));
+        follower.setPose(new Pose(0, 0, 0));
 
         turret = new OdoAim(hardwareMap, follower, true);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
         limelight.pipelineSwitch(0);
     }
+
     @Override
-    public void start(){
+    public void start() {
         limelight.start();
         turret.idle();
     }
@@ -36,35 +37,44 @@ public class MegaTagTesting extends OpMode {
     @Override
     public void loop() {
 
-        // ALWAYS get fresh result
-        follower.update();   // ← VERY IMPORTANT
-        result = limelight.getLatestResult();
+        follower.update();
+
         telemetry.addData("Result Null?", result == null);
         telemetry.addData("Result Valid?", result != null && result.isValid());
-        telemetry.addData("Botpose Raw", result.getBotpose());
+
+        LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
 
             Pose3D botpose = result.getBotpose();
+            double x = botpose.getPosition().x;
+            double y = botpose.getPosition().y;
+            telemetry.addData("MT1 Location", "(" + x + ", " + y + ")");
+            double heading = Math.toRadians(botpose.getOrientation().getYaw());
 
-            double x = botpose.getPosition().x * 39.3701;
-            double y = botpose.getPosition().y * 39.3701;
-            double heading = botpose.getOrientation().getYaw();
+            double tx = result.getTx(); // How far left or right the target is (degrees)
+            double ty = result.getTy(); // How far up or down the target is (degrees)
+            double ta = result.getTa();
+            if (botpose != null) {
 
-            Pose tagPose = new Pose(x, y, heading);
+                Pose tagPose = new Pose(x, y, heading);
 
-            Pose currentPose = follower.getPose();
+                Pose currentPose = follower.getPose();
 
-            double error = currentPose.distanceFrom(tagPose);
+                double error = currentPose.distanceFrom(tagPose);
 
-            if (error > 1.0) {
-                follower.setPose(tagPose);
+                if (error > 1.0) {
+                    follower.setPose(tagPose);
+                    telemetry.addData("Target X", tx);
+                    telemetry.addData("Target Y", ty);
+                    telemetry.addData("Target Area", ta);
+                }
+
+                telemetry.addData("Tag Pose", tagPose);
+                telemetry.addData("Pose Error", error);
             }
-            telemetry.addData("Botpose Raw", result.getBotpose());
-            telemetry.addData("Pose Error", error);
-            telemetry.addData("Tag Pose", tagPose);
-        }
 
-        telemetry.addData("Follower Pose", follower.getPose());
-        telemetry.update();
+            telemetry.addData("Follower Pose", follower.getPose());
+            telemetry.update();
+        }
     }
 }
