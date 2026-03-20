@@ -318,4 +318,5 @@ Mirrors the Blue auto using coordinate flipping (`flipX` / `flipHeading` helpers
 3. Verify all hardware config names match the [Hardware Map](#hardware-map) table above.
 4. Run `Tuning` OpMode to verify PedroPathing constants for the current robot.
 5. Run `MotifScannerAuto` in pre-match to detect and store the motif pattern before running teleop.
+6. Optionally use sloth for faster deploys to the robot
 6. For competition matches, run the appropriate auto first, then select the matching alliance teleop — pose is automatically transferred via `PoseStorage`.
