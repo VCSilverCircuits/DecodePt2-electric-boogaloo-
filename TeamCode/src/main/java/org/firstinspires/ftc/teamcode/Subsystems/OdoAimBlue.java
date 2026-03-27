@@ -180,4 +180,14 @@ public class OdoAimBlue {
 
         targetPose = new Pose(newX, newY);
     }
+    public void restoreFromStorage(double storedTurretRadians) {
+
+        turretPosition = storedTurretRadians;
+
+        // Reset PID internal error memory
+        odometryPIDF.reset();
+        limelightPIDF.reset();
+
+        manualOffsetRad = 0.0;
+    }
 }

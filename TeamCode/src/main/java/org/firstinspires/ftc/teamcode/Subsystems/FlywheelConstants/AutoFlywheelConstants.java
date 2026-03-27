@@ -36,6 +36,8 @@ public class AutoFlywheelConstants {
     private double targetRPM = 0;
     private double targetHoodAngle = 0;
     private boolean enabled = false;
+    private boolean constantRPMMode = false;
+    private double constantRPM = 0;
 
     /**
      * @param hardwareMap FTC hardware map
@@ -77,6 +79,15 @@ public class AutoFlywheelConstants {
             return;
         }
 
+        // ===== CONSTANT RPM MODE =====
+        if (constantRPMMode) {
+            targetRPM = constantRPM;
+            applyRPM();
+            applyHoodAngle(targetHoodAngle);
+            return;
+        }
+
+        // ===== NORMAL AUTO MODE =====
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
@@ -92,6 +103,15 @@ public class AutoFlywheelConstants {
 
         applyRPM();
         applyHoodAngle(targetHoodAngle);
+    }
+
+    public void setConstantRPM(double rpm) {
+        this.constantRPM = rpm;
+        this.constantRPMMode = true;
+        this.enabled = true; // ensures flywheel runs
+    }
+    public void disableConstantRPM() {
+        this.constantRPMMode = false;
     }
 
     // ================= RPM REGRESSION =================

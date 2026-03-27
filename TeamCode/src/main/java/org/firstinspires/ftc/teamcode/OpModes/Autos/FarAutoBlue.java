@@ -14,110 +14,174 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
-import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Far Auto Blue")
+@Autonomous(name = "Far Blue")
 public class FarAutoBlue extends OpMode {
 
     // Hardware
-    private DcMotorEx leftFlywheel, rightFlywheel, intake;
+    private DcMotorEx intake;
     double timesShot = 0;
-
 
     private Follower follower;
     private MecanumConstants mecanumConstants;
-    private OdoAim turret;
+    private OdoAimBlue turret;
     private ColorSensors sensors;
     private ServoGroup servos;
-    AutoFlywheelConstants flywheel;
+    private AutoFlywheelConstants flywheel;
     private Timer pathTimer;
+    private Timer poseTimer;
+
+    boolean intakeDelayStarted = false;
+    boolean endTriggered = false;
+    boolean isAtShootingPose = false;
 
     // Pathing
     private Paths paths;
     private int pathState = 0;
 
     // Poses
-    private static final Pose startPose = new Pose(84.037, 10.019, Math.toRadians(180));
-    private static final Pose firingPose = new Pose(86, 26, Math.toRadians(180));
-    private static final Pose bezierPoint = new Pose(86.05597663551401, 38.644859813084125);
-    private static final Pose intake1 = new Pose(128.897, 36, Math.toRadians(180));
+    private static final Pose startPose = new Pose(59.963, 10.019, Math.toRadians(180));
+    private static final Pose firingPose = new Pose(53, 10.019, Math.toRadians(180));
+
+    private static final Pose intake1 = new Pose(15.103, 36, Math.toRadians(180));
+    private static final Pose intake2 = new Pose(10, 12.019, Math.toRadians(180));
+    private static final Pose endPose = new Pose(10, 30, Math.toRadians(180));
 
     @Override
     public void init() {
-        // Follower & drive constants
+
         follower = AutoConstants.createFollower(hardwareMap);
         follower.setMaxPower(1);
         follower.setStartingPose(startPose);
 
         mecanumConstants = new MecanumConstants();
 
-        // Turret
-        turret = new OdoAim(hardwareMap, follower, false);
+        turret = new OdoAimBlue(hardwareMap, follower, false);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, false);
-        // Sensors & servos
+
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
 
         servos = new ServoGroup(hardwareMap, "frontFlipper", "backFlipper", "leftFlipper", "stopper");
 
-        // Timers
-        pathTimer = new Timer();
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        // Paths
+        pathTimer = new Timer();
+        poseTimer = new Timer();
+
         paths = new Paths(follower);
     }
 
     @Override
     public void loop() {
-        // Update all subsystems
+
         follower.update();
-        flywheel.update(-follower.getVelocity().getXComponent() * 50);
+
         Pose robotPose = follower.getPose();
+
+        // ✅ Check if at shooting pose
+        isAtShootingPose = follower.atPose(firingPose, 7, 7);
+
+
+
+        flywheel.update(-follower.getVelocity().getXComponent() * 50);
+        flywheel.setConstantRPM(4250);
+        // ===== TURRET CONTROL =====
+        if (isAtShootingPose) {
+            turret.odoAim();
+        } else {
+            turret.idle();
+        }
 
         servos.loop();
         turret.update();
-        turret.odoAim();
-        flywheel.enable();
+
         telemetry.addData("path state", pathState);
+        telemetry.addData("times Shot", timesShot);
+        telemetry.addData("pose", robotPose);
+        telemetry.addData("at shooting Pose", isAtShootingPose);
+        telemetry.addData("is running?", servos.isRunning());
         telemetry.addData("current flywheel rpm", flywheel.getCurrentRPM());
         telemetry.addData("target flywheel rpm", flywheel.getTargetRPM());
         telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
-        telemetry.addData("times Shot", timesShot);
         telemetry.update();
-        // Pathing
-        pathState = paths.autonomousPathUpdate(pathState, robotPose);
+
+        // End condition
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
+            endTriggered = true;
+
+            follower.followPath(paths.firingToEnd);
+
+            PoseStorage.currentPose = follower.getPose();
+            PoseStorage.turretRadians = turret.getTurretPosition();
+        }
+
+        if (!endTriggered) {
+            pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        }
     }
 
-    // Inner class for paths
     public class Paths {
-        private PathChain startToFiring, firingToIntake1, intake1ToFiring;
+
+        private PathChain startToFiring;
+
+        private PathChain firingToIntake1;
+        private PathChain intake1ToFiring;
+
+        private PathChain firingToIntake2;
+        private PathChain intake2ToFiring;
+        private PathChain firingToEnd;
+
         private Follower follow;
 
         public Paths(Follower follower) {
+
             this.follow = follower;
 
             startToFiring = follower.pathBuilder()
-                .addPath(new BezierLine(startPose.mirror(), firingPose.mirror()))
+                .addPath(new BezierLine(startPose, firingPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), firingPose.getHeading())
                 .build();
 
             firingToIntake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(firingPose.mirror(),bezierPoint.mirror(), intake1.mirror()))
+                .addPath(new BezierCurve(firingPose,
+                    new Pose(57.95, 38.64),
+                    intake1))
                 .setLinearHeadingInterpolation(firingPose.getHeading(), intake1.getHeading())
                 .build();
+
             intake1ToFiring = follower.pathBuilder()
-                .addPath(new BezierLine(intake1.mirror(), firingPose.mirror()))
+                .addPath(new BezierLine(intake1, firingPose))
                 .setLinearHeadingInterpolation(intake1.getHeading(), firingPose.getHeading())
+                .build();
+
+            firingToIntake2 = follower.pathBuilder()
+                .addPath(new BezierLine(firingPose, intake2))
+                .setLinearHeadingInterpolation(firingPose.getHeading(), intake2.getHeading())
+                .build();
+
+            intake2ToFiring = follower.pathBuilder()
+                .addPath(new BezierLine(intake2, firingPose))
+                .setLinearHeadingInterpolation(intake2.getHeading(), firingPose.getHeading())
+                .build();
+
+            firingToEnd = follower.pathBuilder()
+                .addPath(new BezierLine(firingPose, endPose))
+                .setLinearHeadingInterpolation(firingPose.getHeading(), endPose.getHeading())
                 .build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
+
             switch (pathState) {
 
                 case 0:
                     pathTimer.resetTimer();
+                    poseTimer.resetTimer();
                     pathState = 1;
                     break;
 
@@ -126,60 +190,116 @@ public class FarAutoBlue extends OpMode {
                     pathState = 2;
                     break;
 
-
                 case 2:
-                    if (follower.atPose(firingPose, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
-                        // prevents double start
-                        if (!servos.isRunning() && pathTimer.getElapsedTimeSeconds() > 4) {
-                            servos.StartNonSort();
-                            timesShot++;
-                            pathTimer.resetTimer();
-                            pathState = 3;
-                        }
+                    intake.setPower(1);
+
+                    if (!servos.isRunning()
+                        && follow.atPose(firingPose, 2, 2)
+                        && flywheel.atSpeed(200)) {
+
+                        servos.StartNonSort();
+                        timesShot++;
+
+                        pathTimer.resetTimer();
+                        pathState = 3;
+                    } else if (pathTimer.getElapsedTimeSeconds() > 3 && flywheel.atSpeed(200) ){
+                        servos.StartNonSort();
+                        timesShot++;
+
+                        pathTimer.resetTimer();
+                        pathState = 3;
                     }
-
                     break;
-
 
                 case 3:
+
                     if (!servos.isRunning()) {
-                        turret.idle();
-                        if (timesShot < 2) {
+
+                        if (timesShot == 1) {
+
                             intake.setPower(-1);
                             follow.followPath(firingToIntake1);
+
                             pathTimer.resetTimer();
                             pathState = 4;
-                        } else { pathState = 7;
+                        } else if (timesShot >= 2) {
+
+                            intake.setPower(-1);
+
+                            follower.setMaxPower(1);
+                            follow.followPath(firingToIntake2);
+
+                            pathTimer.resetTimer();
+                            pathState = 6;
+                        } else {
+                            pathState = 7;
                         }
                     }
                     break;
 
-
                 case 4:
-                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 5) {
-                        pathTimer.resetTimer();  // reset here
+                    intake.setPower(-1);
+
+                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+
+                        if (!intakeDelayStarted) {
+                            pathTimer.resetTimer();
+                            intakeDelayStarted = true;
+                        }
+
                         follow.followPath(intake1ToFiring);
-                        pathState = 5;
+
+                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+
+                            intake.setPower(1);
+
+                            intakeDelayStarted = false;
+
+                            pathTimer.resetTimer();
+
+                            follower.setMaxPower(0.8);
+                            pathState = 5;
+                        }
                     }
                     break;
 
                 case 5:
-                    turret.odoAim();
-                    pathTimer.resetTimer();
                     pathState = 2;
                     break;
-                case 7:
-                    PoseStorage.currentPose = follower.getPose();
-                    requestOpModeStop();
+
+                case 6:
+
+                    intake.setPower(-1);
+
+                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+
+                        if (!intakeDelayStarted) {
+                            pathTimer.resetTimer();
+                            intakeDelayStarted = true;
+                        }
+
+                        pathState = 8;
+                    }
+                    break;
+
+                case 8:
+
+                    intake.setPower(-1);
+                    follow.followPath(intake2ToFiring);
+                    follower.setMaxPower(0.8);
+
+                    if (pathTimer.getElapsedTimeSeconds() > 1) {
+
+                        intake.setPower(1);
+
+                        intakeDelayStarted = false;
+                        pathTimer.resetTimer();
+                        pathState = 5;
+                    }
                     break;
             }
-            return pathState;
 
+            return pathState;
         }
     }
 }
-
-
-
-
-

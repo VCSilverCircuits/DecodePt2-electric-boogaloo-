@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
@@ -22,7 +23,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 public class TestingFarBlue extends OpMode {
 
     // Hardware
-    private DcMotorEx leftFlywheel, rightFlywheel, intake;
+    private DcMotorEx intake;
     double timesShot = 0;
 
     private Follower follower;
@@ -30,13 +31,13 @@ public class TestingFarBlue extends OpMode {
     private OdoAim turret;
     private ColorSensors sensors;
     private ServoGroup servos;
-    AutoFlywheelConstants flywheel;
+    private AutoFlywheelConstants flywheel;
     private Timer pathTimer;
     private Timer poseTimer;
-    boolean backspinning = false;
+
+    boolean intakeDelayStarted = false;
     boolean endTriggered = false;
-    boolean turretIdle = false;
-    boolean isServoIdling = false;
+    boolean isAtShootingPose = false;
 
     // Pathing
     private Paths paths;
@@ -44,10 +45,11 @@ public class TestingFarBlue extends OpMode {
 
     // Poses
     private static final Pose startPose = new Pose(59.963, 10.019, Math.toRadians(180));
-    private static final Pose firingPose = new Pose(48, 10.019, Math.toRadians(180));
+    private static final Pose firingPose = new Pose(53, 10.019, Math.toRadians(180));
 
     private static final Pose intake1 = new Pose(15.103, 36, Math.toRadians(180));
-    private static final Pose intake2 = new Pose(10, 12.019, Math.toRadians(175));
+    private static final Pose intake2 = new Pose(10, 12.019, Math.toRadians(180));
+    private static final Pose endPose = new Pose(10, 30, Math.toRadians(180));
 
     @Override
     public void init() {
@@ -80,33 +82,40 @@ public class TestingFarBlue extends OpMode {
 
         follower.update();
 
-        flywheel.update(-follower.getVelocity().getXComponent() * 50);
-        flywheel.enable();
-
         Pose robotPose = follower.getPose();
+
+        // ✅ Check if at shooting pose
+        isAtShootingPose = follower.atPose(firingPose, 7, 7);
+
+
+
+        flywheel.update(-follower.getVelocity().getXComponent() * 50);
+        flywheel.setConstantRPM(4250);
+        // ===== TURRET CONTROL =====
+        if (isAtShootingPose) {
+            turret.odoAim();
+        } else {
+            turret.idle();
+        }
 
         servos.loop();
         turret.update();
 
-        if (turretIdle) {
-            turret.idle();
-        } else {
-            turret.odoAim();
-        }
-
-
         telemetry.addData("path state", pathState);
         telemetry.addData("times Shot", timesShot);
-        telemetry.addData("is servo idling?", isServoIdling);
+        telemetry.addData("pose", robotPose);
+        telemetry.addData("at shooting Pose", isAtShootingPose);
         telemetry.addData("is running?", servos.isRunning());
         telemetry.addData("current flywheel rpm", flywheel.getCurrentRPM());
         telemetry.addData("target flywheel rpm", flywheel.getTargetRPM());
         telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
         telemetry.update();
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 29) {
+
+        // End condition
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
-            turretIdle = true;
-            follower.followPath(paths.firingToIntake2);
+
+            follower.followPath(paths.firingToEnd);
 
             PoseStorage.currentPose = follower.getPose();
             PoseStorage.turretRadians = turret.getTurretPosition();
@@ -126,6 +135,7 @@ public class TestingFarBlue extends OpMode {
 
         private PathChain firingToIntake2;
         private PathChain intake2ToFiring;
+        private PathChain firingToEnd;
 
         private Follower follow;
 
@@ -159,6 +169,11 @@ public class TestingFarBlue extends OpMode {
                 .addPath(new BezierLine(intake2, firingPose))
                 .setLinearHeadingInterpolation(intake2.getHeading(), firingPose.getHeading())
                 .build();
+
+            firingToEnd = follower.pathBuilder()
+                .addPath(new BezierLine(firingPose, endPose))
+                .setLinearHeadingInterpolation(firingPose.getHeading(), endPose.getHeading())
+                .build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
@@ -177,30 +192,29 @@ public class TestingFarBlue extends OpMode {
                     break;
 
                 case 2:
-                    if (!servos.isRunning() && poseTimer.getElapsedTimeSeconds() >= 29) {
-                        turret.idle();
-                        follower.followPath(firingToIntake2);
-                        PoseStorage.currentPose = follower.getPose();
-                        PoseStorage.turretRadians = turret.getTurretPosition();
-                    }
-                    intake.setPower(0.4);
+                    intake.setPower(1);
 
-                    if (!servos.isRunning() && pathTimer.getElapsedTimeSeconds() > 2.5) {
+                    if (!servos.isRunning()
+                        && follow.atPose(firingPose, 2, 2)
+                        && flywheel.atSpeed(200)) {
 
                         servos.StartNonSort();
                         timesShot++;
 
                         pathTimer.resetTimer();
                         pathState = 3;
-                    }
+                    } else if (pathTimer.getElapsedTimeSeconds() > 3 && flywheel.atSpeed(200) ){
+                        servos.StartNonSort();
+                        timesShot++;
 
+                        pathTimer.resetTimer();
+                        pathState = 3;
+                    }
                     break;
 
                 case 3:
 
                     if (!servos.isRunning()) {
-
-                        turret.idle();
 
                         if (timesShot == 1) {
 
@@ -210,66 +224,79 @@ public class TestingFarBlue extends OpMode {
                             pathTimer.resetTimer();
                             pathState = 4;
                         } else if (timesShot >= 2) {
+
                             intake.setPower(-1);
 
-                            follower.setMaxPower(1); // faster drive to intake2
+                            follower.setMaxPower(1);
                             follow.followPath(firingToIntake2);
 
                             pathTimer.resetTimer();
                             pathState = 6;
                         } else {
-
                             pathState = 7;
                         }
                     }
-
                     break;
 
                 case 4:
+                    intake.setPower(-1);
 
                     if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
 
-                        pathTimer.resetTimer();
+                        if (!intakeDelayStarted) {
+                            pathTimer.resetTimer();
+                            intakeDelayStarted = true;
+                        }
+
                         follow.followPath(intake1ToFiring);
 
-                        follower.setMaxPower(0.8);
-                        pathState = 5;
-                    }
+                        if (pathTimer.getElapsedTimeSeconds() > 1) {
 
+                            intake.setPower(1);
+
+                            intakeDelayStarted = false;
+
+                            pathTimer.resetTimer();
+
+                            follower.setMaxPower(0.8);
+                            pathState = 5;
+                        }
+                    }
                     break;
 
                 case 5:
-
-                    turret.odoAim();
-                    pathTimer.resetTimer();
-
                     pathState = 2;
-
                     break;
 
                 case 6:
 
+                    intake.setPower(-1);
+
                     if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
-                        follower.setMaxPower(0.8);
 
-                        pathTimer.resetTimer();
-                        pathState = 8; // go to waiting state
+                        if (!intakeDelayStarted) {
+                            pathTimer.resetTimer();
+                            intakeDelayStarted = true;
+                        }
+
+                        pathState = 8;
                     }
-
                     break;
+
                 case 8:
 
-                    // stay still and let intake collect artifacts
+                    intake.setPower(-1);
+                    follow.followPath(intake2ToFiring);
+                    follower.setMaxPower(0.8);
+
                     if (pathTimer.getElapsedTimeSeconds() > 1) {
 
-                        follow.followPath(intake2ToFiring);
+                        intake.setPower(1);
 
-                        follower.setMaxPower(0.8);
-
+                        intakeDelayStarted = false;
                         pathTimer.resetTimer();
                         pathState = 5;
                     }
-
                     break;
             }
 

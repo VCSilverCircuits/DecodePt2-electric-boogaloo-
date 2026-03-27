@@ -52,13 +52,10 @@ public class BlueTele extends OpMode {
     public void init() {
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setPose(PoseStorage.currentPose);
 
         odoAim = new OdoAimBlue(hardwareMap, follower, false);
-
-        // Initially idle, hold current position
-        odoAim.idle();
-
+        odoAim.restoreFromStorage(PoseStorage.turretRadians);
+        follower.setPose(PoseStorage.currentPose);
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
@@ -94,7 +91,6 @@ public class BlueTele extends OpMode {
     @Override
     public void start() {
         follower.startTeleopDrive();
-        follower.setStartingPose(PoseStorage.currentPose);
         flywheel.enable();
     }
 
