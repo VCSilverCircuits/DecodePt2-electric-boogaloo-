@@ -60,7 +60,7 @@ public class FarAutoRed extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAim(hardwareMap, follower, true);
+        turret = new OdoAim(hardwareMap, follower, false);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();

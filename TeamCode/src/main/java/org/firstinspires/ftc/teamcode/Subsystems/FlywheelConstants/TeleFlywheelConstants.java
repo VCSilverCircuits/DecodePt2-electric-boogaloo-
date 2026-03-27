@@ -19,15 +19,15 @@ public class TeleFlywheelConstants {
     // ================= LINEAR REGRESSION CONSTANTS =================
 
     // RPM Regression
-    private static final double RPM_SLOPE = 21.35148;
-    private static final double RPM_INTERCEPT = 1134.33841;
+    private static final double RPM_SLOPE = 25.35148;
+    private static final double RPM_INTERCEPT = 750;
 
     // Hood Regression
     private static final double HOOD_SLOPE = -0.850766;
-    private static final double HOOD_INTERCEPT = 139.12875;
+    private static final double HOOD_INTERCEPT = 109.12875;
     private Pose targetPose; // current target, can change via D-pad
-    double REDTARGETX = 152;
-    double REDTARGETY = 142;
+    double REDTARGETX = 150;
+    double REDTARGETY = 140;
     double BLUETARGETX = -3;
     double BLUETARGETY = 140;
     Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
