@@ -24,7 +24,7 @@ public class RedTele extends OpMode {
     private ColorSensors sensors;
 
     private DcMotorEx intake;
-
+    private boolean lastTargetSwitch = false;
     private Servo lift1, lift2;
     private Servo stopper;
     private Servo servo1, servo2, servo3;
@@ -55,7 +55,7 @@ public class RedTele extends OpMode {
         follower.setPose(PoseStorage.currentPose);
 
         odoAim.restoreFromStorage(PoseStorage.turretRadians);
-
+        odoAim.setTeleTarget(50, 140); // <-- change this to whatever you want
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -109,6 +109,7 @@ public class RedTele extends OpMode {
         flywheel.update(-gamepad1.left_stick_y * 50);
 
         odoAim.update();
+        odoAim.odoAim();
         servos.loop();
 
         // -------- TOGGLE TRACKING --------
@@ -214,7 +215,6 @@ public class RedTele extends OpMode {
             lift1.setPosition(0.9);
             lift2.setPosition(0.92);
         }
-
         // ================= TELEMETRY =================
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());

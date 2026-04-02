@@ -47,6 +47,7 @@ public class CloseRedAuto extends OpMode {
     private final Pose intake2 = new Pose(130,62, Math.toRadians(-7));
     private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(0));
     private final Pose intake3 = new Pose(132,42, Math.toRadians(-3));
+    private final Pose finalPose = new Pose(80,110, Math.toRadians(0));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3, servo4;
@@ -133,7 +134,7 @@ public class CloseRedAuto extends OpMode {
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
 
-            follower.followPath(paths.endPoseToLineup3);
+            follower.followPath(paths.endToFinal);
 
         }
         if (endTriggered && pathTimer.getElapsedTimeSeconds() >=30){
@@ -162,10 +163,13 @@ public class CloseRedAuto extends OpMode {
     public class Paths {
 
         private PathChain startToEnd, endToTurnToIntake, turnToIntakeToIntake1, intake1ToReleaseBalls, releaseBallsToEndPose, endPoseToLineUp, lineupToIntake2, intake2ToEndPose, endPoseToLineup3, lineup3ToIntake3, intake3ToEndPose;
+        private PathChain endToFinal;
         private Follower follow;
 
         public Paths(Follower follower) {
             this.follow = follower;
+            endToFinal = follower.pathBuilder().addPath(new BezierLine(endPose,finalPose))
+                .setLinearHeadingInterpolation(endPose.getHeading(), finalPose.getHeading()).build();
 
             startToEnd = follower.pathBuilder().addPath(new BezierLine(startPose, endPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading()).build();
@@ -204,7 +208,7 @@ public class CloseRedAuto extends OpMode {
                     leaveTimer.resetTimer();
                     follow.followPath(startToEnd);
                     follower.setMaxPower(1);
-                    setFlywheelRPM(3650);
+                    setFlywheelRPM(2750);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     pathState = 1;

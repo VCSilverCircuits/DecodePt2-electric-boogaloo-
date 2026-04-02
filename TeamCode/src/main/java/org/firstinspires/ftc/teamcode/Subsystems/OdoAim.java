@@ -24,7 +24,7 @@ public class OdoAim {
 
     private double turretPosition;
     private double isLLgetting;
-    private Pose targetPose; // current target, can change via D-pad
+    private Pose targetPose;
 
     public static double RADIANSPERTICK = 0.001062;
 
@@ -32,12 +32,9 @@ public class OdoAim {
     private double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-     Pose REDTARGET = new Pose(148 , 142 );
-     // x:152, y:146
-
-    Pose REDTARGET_TELE = new Pose(148 , 142 );
-    // x:152, y:146
-
+    // ✅ TRUE CONSTANTS (never modified directly)
+    public static final Pose REDTARGET = new Pose(148, 142);
+    public static final Pose REDTARGET_TELE = new Pose(100, 160);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -48,11 +45,17 @@ public class OdoAim {
     private double relativeTargetHeading;
     private boolean isRed;
 
-
     public OdoAim(HardwareMap hardwareMap, Follower follower, boolean isTele) {
 
         this.follower = follower;
-        this.targetPose = isTele ? REDTARGET : REDTARGET_TELE;
+
+        // ✅ IMPORTANT: copy values, don't reference constants
+        if (isTele) {
+            this.targetPose = new Pose(REDTARGET_TELE.getX(), REDTARGET_TELE.getY());
+        } else {
+            this.targetPose = new Pose(REDTARGET.getX(), REDTARGET.getY());
+        }
+
         yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
         yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         yawMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -60,6 +63,23 @@ public class OdoAim {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 4 : 0);
         limelight.start();
+    }
+
+    // ================= TARGET SETTERS (NEW) =================
+    public void setTargetPose(Pose pose) {
+        this.targetPose = new Pose(pose.getX(), pose.getY());
+    }
+
+    public void setTeleTarget(double x, double y) {
+        this.targetPose = new Pose(x, y);
+    }
+
+    public void setUseTeleTarget(boolean isTele) {
+        if (isTele) {
+            this.targetPose = new Pose(REDTARGET_TELE.getX(), REDTARGET_TELE.getY());
+        } else {
+            this.targetPose = new Pose(REDTARGET.getX(), REDTARGET.getY());
+        }
     }
 
     // ================= UPDATE TARGET ANGLE =================
@@ -76,13 +96,13 @@ public class OdoAim {
         relativeTargetHeading =
             AngleUnit.normalizeRadians(fieldAngleToTarget - robotHeading);
     }
+
     // ================= ODOMETRY AIM WITH OFFSET =================
     public void odoAim() {
 
         double targetAngle =
             AngleUnit.normalizeRadians(relativeTargetHeading + manualOffsetRad);
 
-        // HARD LIMIT CLAMP
         targetAngle = Math.max(MIN_TURRET_RAD,
             Math.min(MAX_TURRET_RAD, targetAngle));
 
@@ -110,11 +130,9 @@ public class OdoAim {
     // ================= OFFSET CONTROLS =================
     public void changeTarget(boolean dpadRight, boolean dpadLeft) {
         if (dpadRight) {
-            // Example: move turret target slightly forward in X
             targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
         }
         if (dpadLeft) {
-            // Example: move turret target slightly backward in X
             targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
         }
     }
@@ -164,14 +182,13 @@ public class OdoAim {
     public double checkLL() {
         return isLLgetting;
     }
+
     public void syncToCurrentPosition() {
         turretPosition = yawMotor.getCurrentPosition() * RADIANSPERTICK;
-
-        // Make PID think we are already at target
         relativeTargetHeading = turretPosition;
-
         manualOffsetRad = 0.0;
     }
+
     public void recalibration(Follower follower) {
         this.follower = follower;
 
@@ -182,11 +199,11 @@ public class OdoAim {
 
         targetPose = new Pose(newX, newY);
     }
+
     public void restoreFromStorage(double storedTurretRadians) {
 
         turretPosition = storedTurretRadians;
 
-        // Reset PID internal error memory
         odometryPIDF.reset();
         limelightPIDF.reset();
 

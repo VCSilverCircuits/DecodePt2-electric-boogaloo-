@@ -562,7 +562,7 @@ public class CloseBlueAuto extends OpMode {
                 case 0: // Start -> Shoot preload
                     follow.followPath(startToEnd);
                     follower.setMaxPower(.9);
-                    setFlywheelRPM(3650);
+                    setFlywheelRPM(2750);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     leaveTimer.resetTimer();

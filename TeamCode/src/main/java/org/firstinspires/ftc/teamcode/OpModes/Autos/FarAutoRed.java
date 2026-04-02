@@ -49,7 +49,7 @@ public class FarAutoRed extends OpMode {
 
     private static final Pose intake1 = new Pose(128.897, 36, Math.toRadians(0));
     private static final Pose intake2 = new Pose(134, 12.019, Math.toRadians(0));
-    private static final Pose endPose = new Pose(134, 30, Math.toRadians(0));
+    private static final Pose endPose = new Pose(110, 10.019, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -115,6 +115,7 @@ public class FarAutoRed extends OpMode {
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
+            turret.idle();
         }
         if (endTriggered && pathTimer.getElapsedTimeSeconds() >=30){
             PoseStorage.currentPose = follower.getPose();
