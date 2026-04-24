@@ -474,6 +474,12 @@ public class CloseBlueAuto extends OpMode {
         paths = new Paths(follower);
     }
 
+    private boolean flywheelAtSpeed(double targetRPM, double tolerance) {
+        double avgTicksPerSec = (Math.abs(leftFlywheel.getVelocity()) + Math.abs(rightFlywheel.getVelocity())) / 2.0;
+        double currentRPM = (avgTicksPerSec * 60.0) / TICKS_PER_REV;
+        return Math.abs(currentRPM - targetRPM) < tolerance;
+    }
+
     @Override
     public void loop() {
         follower.update();
@@ -569,8 +575,10 @@ public class CloseBlueAuto extends OpMode {
 
                 case 1:
                     if (follow.atPose(endPose, 2, 2)) {
-                        pathTimer.resetTimer();
-                        pathState = 2;
+                        if (flywheelAtSpeed(2750, 400) || pathTimer.getElapsedTimeSeconds() > 3.0) {
+                            pathTimer.resetTimer();
+                            pathState = 2;
+                        }
                     }
                     break;
 

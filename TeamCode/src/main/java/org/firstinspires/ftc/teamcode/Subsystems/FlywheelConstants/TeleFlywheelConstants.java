@@ -152,7 +152,7 @@ public class TeleFlywheelConstants {
     }
 
     public double getCurrentRPM() {
-        double ticksPerSecond = rightFlywheel.getVelocity();
+        double ticksPerSecond = (Math.abs(leftFlywheel.getVelocity()) + Math.abs(rightFlywheel.getVelocity())) / 2.0;
         return (ticksPerSecond * 60.0) / TICKS_PER_REV;
     }
 

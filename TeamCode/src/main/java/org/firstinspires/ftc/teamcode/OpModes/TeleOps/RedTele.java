@@ -37,6 +37,9 @@ public class RedTele extends OpMode {
 
     private boolean isFiring = false;
     private boolean intakeLocked = false;
+    private boolean pendingFire = false;
+    private long pendingFireStartMs = 0;
+    private static final long FIRE_TIMEOUT_MS = 1500;
 
     // ================= TURRET CONTROL =================
     private boolean turretTrackingEnabled = false;
@@ -105,7 +108,7 @@ public class RedTele extends OpMode {
         );
 
         follower.update();
-        flywheel.update(-gamepad1.left_stick_y * 50);
+        flywheel.update(-follower.getVelocity().getXComponent() * 50);
 
         odoAim.update();
         odoAim.odoAim();
@@ -169,13 +172,22 @@ public class RedTele extends OpMode {
         }
 
         // ================= FIRING =================
-        if (gamepad1.y && !isFiring) {
-            isFiring = true;
+        if (gamepad1.y && !isFiring && !pendingFire) {
+            pendingFire = true;
+            pendingFireStartMs = System.currentTimeMillis();
             intakeLocked = true;
             intake.setPower(0);
-            sensors.reset();
-            sensors.update();
-            servos.StartNonSort();
+        }
+
+        if (pendingFire && !isFiring) {
+            long elapsed = System.currentTimeMillis() - pendingFireStartMs;
+            if (flywheel.atSpeed(300) || elapsed >= FIRE_TIMEOUT_MS) {
+                pendingFire = false;
+                isFiring = true;
+                sensors.reset();
+                sensors.update();
+                servos.StartNonSort();
+            }
         }
 
         if (!servos.isRunning() && isFiring) {
@@ -213,6 +225,10 @@ public class RedTele extends OpMode {
         // ================= TELEMETRY =================
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
+        telemetry.addData("Flywheel RPM", (int) flywheel.getCurrentRPM());
+        telemetry.addData("Flywheel Target RPM", (int) flywheel.getTargetRPM());
+        telemetry.addData("Flywheel At Speed", flywheel.atSpeed(300));
+        telemetry.addData("Pending Fire", pendingFire);
         telemetry.update();
     }
 }
