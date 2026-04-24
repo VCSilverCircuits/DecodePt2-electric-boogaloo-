@@ -19,8 +19,8 @@ public class TeleFlywheelConstants {
     // ================= LINEAR REGRESSION CONSTANTS =================
 
     // RPM Regression
-    private static final double RPM_SLOPE = 25.35148;
-    private static final double RPM_INTERCEPT = 750;
+    private static final double RPM_SLOPE = 20;
+    private static final double RPM_INTERCEPT = 1100;
 
     // Hood Regression
     private static final double HOOD_SLOPE = -0.550766;
@@ -96,13 +96,16 @@ public class TeleFlywheelConstants {
     // ================= RPM REGRESSION =================
     private double getRegressionRPM(double distance) {
         double rpm = RPM_SLOPE * distance + RPM_INTERCEPT;
-        return Math.max(1800, Math.min(10000, rpm));
+        if(distance < 97 && distance > 30){
+            rpm = rpm + 300;
+        }
+        return Math.max(2800, Math.min(10000, rpm));
     }
 
     // ================= HOOD REGRESSION =================
     private double getRegressionHood(double distance) {
         double angle = HOOD_SLOPE * distance + HOOD_INTERCEPT;
-        return Math.max(0, Math.min(120, angle));
+        return Math.max(-15, Math.min(120, angle));
     }
 
     // ================= MOTOR CONTROL =================

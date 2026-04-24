@@ -55,7 +55,6 @@ public class RedTele extends OpMode {
         follower.setPose(PoseStorage.currentPose);
 
         odoAim.restoreFromStorage(PoseStorage.turretRadians);
-        odoAim.setTeleTarget(50, 140); // <-- change this to whatever you want
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -145,10 +144,6 @@ public class RedTele extends OpMode {
             odoAim.odoAim();
         } else {
             odoAim.idle();
-        }
-        if (gamepad1.dpad_down){
-            odoAim.recalibration(follower);
-            flywheel.recalibration(follower);
         }
 
 

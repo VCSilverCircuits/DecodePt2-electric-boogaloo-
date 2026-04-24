@@ -87,16 +87,11 @@ public class FarAutoRed extends OpMode {
         // ✅ Check if at shooting pose
         isAtShootingPose = follower.atPose(firingPose, 7, 7);
 
-
+        turret.odoAim();
 
         flywheel.update(-follower.getVelocity().getXComponent() * 50);
         flywheel.setConstantRPM(4250);
-        // ===== TURRET CONTROL =====
-        if (isAtShootingPose) {
-            turret.odoAim();
-        } else {
-            turret.idle();
-        }
+
 
         servos.loop();
         turret.update();

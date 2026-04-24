@@ -33,8 +33,8 @@ public class OdoAim {
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
     // ✅ TRUE CONSTANTS (never modified directly)
-    public static final Pose REDTARGET = new Pose(148, 142);
-    public static final Pose REDTARGET_TELE = new Pose(100, 160);
+    public static final Pose REDTARGET = new Pose(150, 130);
+    public static final Pose REDTARGET_TELE = new Pose(150, 130);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
