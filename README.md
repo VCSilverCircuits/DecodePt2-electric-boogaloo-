@@ -54,7 +54,8 @@ TeamCode/src/main/java/org/firstinspires/ftc/teamcode/
 │   │   ├── OldRedTele.java          # Legacy Red teleop
 │   │   └── ScrimBotTelop.java       # Scrimmage teleop
 │   ├── TestingAutos/
-│   │   └── MotifScannerAuto.java    # Auto that scans and stores the motif pattern
+│   │   ├── MotifScannerAuto.java    # Auto that scans and stores the motif pattern
+│   │   └── TestingFarBlue.java      # Far-side auto variant for testing (Blue)
 │   └── TestingTeleOps/
 │       ├── MotifShooterTeleOp.java  # Teleop for testing motif-based sorting
 │       ├── UrsaTestTele.java        # General hardware testing teleop
@@ -147,14 +148,15 @@ All hardware names must match exactly in the Driver Hub configuration.
 |--------------------|----------|-----------------|----------------------------------------------------|
 | `Blue Auto Shoot`  | Blue     | Close side       | Shoots preload + 3 intake cycles                  |
 | `Red Auto Shoot`   | Red      | Close side       | Mirrored version of Blue close auto               |
-| `Far Auto Blue`    | Blue     | Far side         | Far-side starting position auto                   |
-| `Far Auto Red`     | Red      | Far side         | Far-side starting position auto                   |
+| `Far Blue`         | Blue     | Far side         | Far-side starting position auto                   |
+| `Far Red`          | Red      | Far side         | Far-side starting position auto                   |
 
 ### Testing / Tuning
 
 | Name                  | Description                                              |
 |-----------------------|----------------------------------------------------------|
 | `MotifScannerAuto`    | Scans backdrop AprilTags and stores the motif pattern   |
+| `Testing Far Blue`    | Far-side auto test variant for Blue alliance            |
 | `MotifShooterTeleOp`  | Tests motif-sorted flipper firing sequence              |
 | `UrsaTestTele`        | General hardware/subsystem testing                      |
 | `MegaTagTesting`      | Tests Limelight MegaTag localization                    |
@@ -175,7 +177,7 @@ Turret aiming controller that keeps the flywheel pointed at the goal.
 - Hard limits: -90 deg to +175 deg turret rotation
 
 **Target poses (field coordinates, inches):**
-- Red goal (OdoAim / Red alliance): (148, 142)
+- Red goal (OdoAim / Red alliance): (150, 130)
 - Blue goal (OdoAimBlue / Blue alliance): (-3, 140)
 
 ### BlueTeleFlywheelConstants / TeleFlywheelConstants
@@ -188,7 +190,7 @@ Distance-based flywheel controller. Each update cycle it:
 4. Drives both flywheel motors and the hood servo
 
 **Regression constants (Blue):**
-- RPM = 21.35 * distance + 2634.3
+- RPM = 20 * distance + 1100
 - Hood angle (deg) = -0.851 * distance + 139.1
 
 ### ServoGroup
@@ -235,9 +237,9 @@ Simple static class that persists two values across OpMode transitions (auto →
 | Left stick        | Drive (field-relative)                              |
 | Right stick X     | Rotate (50% speed)                                  |
 | Left bumper       | Toggle turret auto-tracking on/off                  |
+| Right bumper      | Override tele target to (0, 144) — Blue wall        |
 | D-pad left        | Nudge turret aim target +3 inches in X              |
 | D-pad right       | Nudge turret aim target -3 inches in X              |
-| D-pad down        | Recalibrate turret and flywheel target positions    |
 | Left trigger      | Toggle intake on/off                                |
 | Right trigger     | Run intake reverse (backspin)                       |
 | Y button          | Fire all three flippers (non-sorted, sequential)    |
