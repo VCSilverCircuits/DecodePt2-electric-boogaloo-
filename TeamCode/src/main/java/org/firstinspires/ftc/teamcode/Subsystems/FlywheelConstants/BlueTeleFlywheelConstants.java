@@ -23,8 +23,8 @@ public class BlueTeleFlywheelConstants {
     private static final double RPM_INTERCEPT = 1100;
 
     // Hood Regression
-    private static final double HOOD_SLOPE = -0.850766;
-    private static final double HOOD_INTERCEPT = 139.12875;
+    private static final double HOOD_SLOPE = -0.550766;
+    private static final double HOOD_INTERCEPT = 109.12875;
     private Pose targetPose; // current target, can change via D-pad
     double REDTARGETX = 152;
     double REDTARGETY = 142;
@@ -96,13 +96,16 @@ public class BlueTeleFlywheelConstants {
     // ================= RPM REGRESSION =================
     private double getRegressionRPM(double distance) {
         double rpm = RPM_SLOPE * distance + RPM_INTERCEPT;
-        return Math.max(1800, Math.min(10000, rpm));
+        if(distance < 97 && distance > 30){
+            rpm = rpm + 300;
+        }
+        return Math.max(2800, Math.min(10000, rpm));
     }
 
     // ================= HOOD REGRESSION =================
     private double getRegressionHood(double distance) {
         double angle = HOOD_SLOPE * distance + HOOD_INTERCEPT;
-        return Math.max(0, Math.min(120, angle));
+        return Math.max(-15, Math.min(120, angle));
     }
 
     // ================= MOTOR CONTROL =================
