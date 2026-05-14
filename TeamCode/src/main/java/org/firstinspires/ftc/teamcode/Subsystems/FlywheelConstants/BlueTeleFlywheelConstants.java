@@ -28,7 +28,7 @@ public class BlueTeleFlywheelConstants {
     private Pose targetPose; // current target, can change via D-pad
     double REDTARGETX = 152;
     double REDTARGETY = 142;
-    double BLUETARGETX = -3;
+    double BLUETARGETX = -10;
     double BLUETARGETY = 140;
     Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
     Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
