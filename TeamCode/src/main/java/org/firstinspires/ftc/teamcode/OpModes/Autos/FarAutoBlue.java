@@ -26,7 +26,7 @@ public class FarAutoBlue extends OpMode {
     double timesShot = 0;
 
     private Follower follower;
-    private MecanumConstants mecanumConstants;
+
     private OdoAimBlue turret;
     private ColorSensors sensors;
     private ServoGroup servos;
@@ -43,12 +43,12 @@ public class FarAutoBlue extends OpMode {
     private int pathState = 0;
 
     // Poses
-    private static final Pose startPose = new Pose(59.963, 10.019, Math.toRadians(180));
-    private static final Pose firingPose = new Pose(53, 10.019, Math.toRadians(180));
+    private static final Pose startPose = new Pose(59.963, 12.019, Math.toRadians(180));
+    private static final Pose firingPose = new Pose(53, 12.019, Math.toRadians(180));
 
     private static final Pose intake1 = new Pose(15.103, 36, Math.toRadians(180));
-    private static final Pose intake2 = new Pose(10, 12.019, Math.toRadians(180));
-    private static final Pose endPose = new Pose(10, 30, Math.toRadians(180));
+    private static final Pose intake2 = new Pose(7, 13.019, Math.toRadians(180));
+    private static final Pose endPose = new Pose(20, 12.019, Math.toRadians(180));
 
     @Override
     public void init() {
@@ -57,7 +57,7 @@ public class FarAutoBlue extends OpMode {
         follower.setMaxPower(1);
         follower.setStartingPose(startPose);
 
-        mecanumConstants = new MecanumConstants();
+
 
         turret = new OdoAimBlue(hardwareMap, follower, false);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, false);
@@ -84,18 +84,13 @@ public class FarAutoBlue extends OpMode {
         Pose robotPose = follower.getPose();
 
         // ✅ Check if at shooting pose
-        isAtShootingPose = follower.atPose(firingPose, 7, 7);
 
 
 
         flywheel.update(-follower.getVelocity().getXComponent() * 50);
         flywheel.setConstantRPM(4250);
         // ===== TURRET CONTROL =====
-        if (isAtShootingPose) {
-            turret.odoAim();
-        } else {
-            turret.idle();
-        }
+        turret.odoAim();
 
         servos.loop();
         turret.update();

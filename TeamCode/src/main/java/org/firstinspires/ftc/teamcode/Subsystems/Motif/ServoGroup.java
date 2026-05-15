@@ -21,7 +21,7 @@ public class ServoGroup {
     private Servo lastAddedServo = null;
 
     // Timing constants
-    private static final long UP_DURATION_MS = 220;
+    private static final long UP_DURATION_MS = 270;
     private static final long DOWN_DELAY_MS = 220;
 
     public ServoGroup(HardwareMap hw,
