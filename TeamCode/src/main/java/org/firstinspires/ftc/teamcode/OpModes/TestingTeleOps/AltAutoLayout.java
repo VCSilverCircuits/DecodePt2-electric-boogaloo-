@@ -48,9 +48,8 @@ public class AltAutoLayout extends OpMode {
     private static final Pose firingPose = new Pose(55.402, 88.15, Math.toRadians((180)));
 
     private static final Pose intakePose = new Pose(18.028, 59.290, Math.toRadians(180));
-    private static final Pose initialRelease = new Pose(15.953, 68.850, Math.toRadians(180));
-    private final Pose repeatRelease = new Pose(11.505, 60.981, Math.toRadians(141));
-    private static final Pose endPose = new Pose(11.505, 60.981, Math.toRadians(141));
+    private static final Pose initialRelease = new Pose(15.953, 72.850, Math.toRadians(180));
+    private final Pose repeatRelease = new Pose(11.505, 61.981, Math.toRadians(145));
 
     @Override
     public void init() {
@@ -85,15 +84,13 @@ public class AltAutoLayout extends OpMode {
 
         Pose robotPose = follower.getPose();
 
-        // ✅ Check if at shooting pose
-        isAtShootingPose = follower.atPose(firingPose, 7, 7);
 
         turret.odoAim();
 
         flywheel.update(-follower.getVelocity().getXComponent() * 50);
-        flywheel.setConstantRPM(2175);
+        flywheel.setConstantRPM(3000);
 
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 27.5) {
             endTriggered = true;
             follower.followPath(paths.endPath);
             turret.idle();
@@ -190,7 +187,7 @@ public class AltAutoLayout extends OpMode {
             endPath = follower.pathBuilder().addPath(
                     new BezierLine(
                         new Pose(46.449, 99.196),
-                        new Pose(110, 93.9813)
+                        firingPose
                     )
                 ).setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(141))
                 .build();
@@ -222,20 +219,23 @@ public class AltAutoLayout extends OpMode {
                 case 3:
                     pathTimer.resetTimer();
                     if (!servos.isRunning()) {
+                        follower.setMaxPower(0.8);
+                        intake.setPower(-1);
                         follow.followPath(paths.shootToIntake);
                         pathState = 4;
                     }
                     break;
 
                 case 4:
-                    if (pathTimer.getElapsedTimeSeconds() > 7) {
+                    if (pathTimer.getElapsedTimeSeconds() > 2) {
                         follow.followPath(paths.intakeToRelease);
                         pathState = 5;
                     }
                     break;
 
                 case 5:
-                    if (follow.atPose(initialRelease, 2, 2)) {
+                    if (follow.atPose(initialRelease, 3, 3)) {
+                        follower.setMaxPower(1);
                         follow.followPath(paths.releaseToShoot);
                         pathTimer.resetTimer();
                         pathState = 6;
@@ -257,14 +257,17 @@ public class AltAutoLayout extends OpMode {
                     break;
                 case 8:
                     if (follow.atPose(repeatRelease, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 4){
+                        if (pathTimer.getElapsedTimeSeconds() >= 5){
                             follow.followPath(releaseToShoot);
                             pathState = 9;
                         }
-                    }
+                        }
+
                     break;
+
                 case 9:
                     if (follow.atPose(firingPose, 2, 2)) {
+                        pathTimer.resetTimer();
                         servos.StartNonSort();
                         pathState = 10;
                     }
