@@ -14,13 +14,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
-import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Alt Auto Layout Testing")
-public class AltAutoLayout extends OpMode {
+@Autonomous(name = "Alt Close Blue")
+public class AltCloseBlue extends OpMode {
 
     // Hardware
     private DcMotorEx intake;
