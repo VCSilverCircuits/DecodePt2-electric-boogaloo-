@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class AutoFlywheelConstants {
+public class AltBlueFlywheelConstants {
 
     private DcMotorEx leftFlywheel, rightFlywheel;
     private Servo hoodServo;
@@ -38,21 +38,18 @@ public class AutoFlywheelConstants {
     private boolean enabled = false;
     private boolean constantRPMMode = false;
     private double constantRPM = 0;
-    private boolean constantHoodMode = false;
-    private double constantHood = 0;
 
     /**
      * @param hardwareMap FTC hardware map
      * @param follower    Odometry follower
      * @param isRed       TRUE = Red alliance, FALSE = Blue alliance
      */
-    public AutoFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
+    public AltBlueFlywheelConstants(HardwareMap hardwareMap, Follower follower, boolean isRed) {
 
         this.follower = follower;
 
         leftFlywheel = hardwareMap.get(DcMotorEx.class, "Output1");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "Output2");
-        hoodServo = hardwareMap.get(Servo.class, "Hood");
 
         leftFlywheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -88,12 +85,6 @@ public class AutoFlywheelConstants {
             applyHoodAngle(targetHoodAngle);
             return;
         }
-        if (constantRPMMode) {
-            targetHoodAngle = constantRPM;
-            applyRPM();
-            return;
-        }
-
 
         // ===== NORMAL AUTO MODE =====
         double robotX = follower.getPose().getX();
@@ -115,11 +106,6 @@ public class AutoFlywheelConstants {
 
     public void setConstantRPM(double rpm) {
         this.constantRPM = rpm;
-        this.constantRPMMode = true;
-        this.enabled = true; // ensures flywheel runs
-    }
-    public void setConstantHood(double hood) {
-        this.constantHood = hood;
         this.constantRPMMode = true;
         this.enabled = true; // ensures flywheel runs
     }
