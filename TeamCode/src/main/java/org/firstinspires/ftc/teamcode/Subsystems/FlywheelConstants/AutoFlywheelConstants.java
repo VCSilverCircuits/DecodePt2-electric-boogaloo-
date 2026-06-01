@@ -64,7 +64,7 @@ public class AutoFlywheelConstants {
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        // ================= ALLIANCE TARGET =================
+
         if (isRed) {
             goalX = 152.0;
             goalY = 142.0;
@@ -74,6 +74,7 @@ public class AutoFlywheelConstants {
         }
     }
 
+
     public void update(double robotForwardVelocity) {
 
         if (!enabled) {
@@ -81,21 +82,21 @@ public class AutoFlywheelConstants {
             return;
         }
 
-        // ===== CONSTANT RPM MODE =====
+        // ===== CONSTANT MODES =====
         if (constantRPMMode) {
             targetRPM = constantRPM;
             applyRPM();
+        }
+
+        if (constantHoodMode) {
+            targetHoodAngle = constantHood;
             applyHoodAngle(targetHoodAngle);
-            return;
         }
-        if (constantRPMMode) {
-            targetHoodAngle = constantRPM;
-            applyRPM();
+
+        if (constantRPMMode || constantHoodMode) {
             return;
         }
 
-
-        // ===== NORMAL AUTO MODE =====
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
 
@@ -116,15 +117,21 @@ public class AutoFlywheelConstants {
     public void setConstantRPM(double rpm) {
         this.constantRPM = rpm;
         this.constantRPMMode = true;
-        this.enabled = true; // ensures flywheel runs
+        this.enabled = true;
     }
-    public void setConstantHood(double hood) {
-        this.constantHood = hood;
-        this.constantRPMMode = true;
-        this.enabled = true; // ensures flywheel runs
-    }
+
     public void disableConstantRPM() {
         this.constantRPMMode = false;
+    }
+
+    public void setConstantHood(double hood) {
+        this.constantHood = hood;
+        this.constantHoodMode = true;
+        this.enabled = true;
+    }
+
+    public void disableConstantHood() {
+        this.constantHoodMode = false;
     }
 
     // ================= RPM REGRESSION =================
@@ -136,7 +143,7 @@ public class AutoFlywheelConstants {
     // ================= HOOD REGRESSION =================
     private double getRegressionHood(double distance) {
         double angle = HOOD_SLOPE * distance + HOOD_INTERCEPT;
-        return Math.max(-15, Math.min(120, angle));
+        return Math.max(0, Math.min(120, angle));
     }
 
     // ================= MOTOR CONTROL =================
@@ -150,13 +157,15 @@ public class AutoFlywheelConstants {
     }
 
     private void applyHoodAngle(double angleDegrees) {
-        double minAngle = 0;
-        double maxAngle = 120;
+
+        double minAngle = 0.0;
+        double maxAngle = 120.0;
 
         double position = (angleDegrees - minAngle) / (maxAngle - minAngle);
-        position = Math.max(-10, Math.min(1, position));
 
-        hoodServo.setPosition((position) * 1.2);
+        position = Math.max(0.0, Math.min(1.0, position));
+
+        hoodServo.setPosition(position);
     }
 
     private void stop() {

@@ -24,8 +24,7 @@ public class ServoGroup {
     private static final long UP_DURATION_MS = 270;
     private static final long DOWN_DELAY_MS = 220;
 
-    public ServoGroup(HardwareMap hw,
-                      String servo1, String servo2, String servo3, String stopper1) {
+    public ServoGroup(HardwareMap hw, String servo1, String servo2, String servo3, String stopper1) {
 
         stopper = hw.get(Servo.class,stopper1);
         s1 = hw.get(Servo.class, servo1);
@@ -38,9 +37,7 @@ public class ServoGroup {
         stop();
     }
 
-    /* =========================================================
-       🔫 FORCED SEQUENTIAL MODE (s1 → s2 → s3)
-       ========================================================= */
+
     public void StartNonSort() {
         running = true;
         stopper.setPosition(0.3);

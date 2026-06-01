@@ -37,6 +37,7 @@ public class AltCloseBlue extends OpMode {
     boolean intakeDelayStarted = false;
     boolean endTriggered = false;
     boolean isAtShootingPose = false;
+    boolean twoShotsDone = false;
 
     // Pathing
     private Paths paths;
@@ -46,10 +47,10 @@ public class AltCloseBlue extends OpMode {
     private static final Pose startPose = new Pose(21.458, 123.738, Math.toRadians((141)));
     private static final Pose firingPose = new Pose(55.402, 88.15, Math.toRadians((180)));
 
-    private static final Pose intakePose = new Pose(10.028, 55.290, Math.toRadians(180));
+    private static final Pose intakePose = new Pose(12.43921495327103, 64.12177570093458, Math.toRadians(180));
     private static final Pose initialRelease = new Pose(15.953, 76.850, Math.toRadians(180));
-    private final Pose repeatRelease = new Pose(13, 62, Math.toRadians(150));
-    private static final Pose closeIntake = new Pose(17.87,84.037, Math.toRadians(180));
+    private final Pose repeatRelease = new Pose(11.9, 60.1, Math.toRadians(145));
+    private static final Pose closeIntake = new Pose(20.17841121495327,90.29868224299065, Math.toRadians(180));
 
     @Override
     public void init() {
@@ -88,13 +89,17 @@ public class AltCloseBlue extends OpMode {
         turret.odoAim();
         flywheel.update(-follower.getVelocity().getXComponent() * 50);
 
-        flywheel.setConstantRPM(3450);
-        flywheel.setConstantHood(-120);
+        flywheel.setConstantRPM(3000);
+        flywheel.setConstantHood(70);
 
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 27.5) {
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
             follower.followPath(paths.endPath);
             turret.idle();
+        }
+        if (timesShot >= 2 && !twoShotsDone){
+            twoShotsDone = true;
+            pathState = 11;
         }
 
 
@@ -132,6 +137,7 @@ public class AltCloseBlue extends OpMode {
         public PathChain firingToCloseIntake;
         public PathChain closeIntakeToFiring;
         public PathChain repeatReleaseToShoot;
+        public PathChain intakeToFiring;
 
         private Follower follow;
 
@@ -146,7 +152,7 @@ public class AltCloseBlue extends OpMode {
                 .build();
 
             shootToIntake = follower.pathBuilder().addPath(
-                    new BezierCurve(firingPose, new Pose(55.069831775700926, 68.1498598130841), intakePose)
+                    new BezierCurve(firingPose, new Pose(54.6212336448598, 61.505), intakePose)
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                 .build();
@@ -204,9 +210,8 @@ public class AltCloseBlue extends OpMode {
                 ).setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(141))
                 .build();
             firingToCloseIntake = follower.pathBuilder().addPath(
-                new BezierCurve(
+                new BezierLine(
                     firingPose,
-                    new Pose(42.205672897196266, 82.9161214953271),
                     closeIntake
                 )
             ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
@@ -218,6 +223,14 @@ public class AltCloseBlue extends OpMode {
                     firingPose
                 )
             ) .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                .build();
+            intakeToFiring = follower.pathBuilder().addPath(
+                new BezierCurve(
+                    intakePose,
+                    new Pose(61.00934579439252, 59.663551401869164),
+                    firingPose
+                )
+            ).setLinearHeadingInterpolation(intakePose.getHeading(), firingPose.getHeading())
                 .build();
         }
 
@@ -238,7 +251,7 @@ public class AltCloseBlue extends OpMode {
                     break;
 
                 case 2:
-                    if (pathTimer.getElapsedTimeSeconds() > 3 || follow.atPose(firingPose, 2, 2)) {
+                    if (pathTimer.getElapsedTimeSeconds() > 2 || follow.atPose(firingPose, 2, 2)) {
                         servos.StartNonSort();
                         pathState = 3;
                     }
@@ -247,7 +260,6 @@ public class AltCloseBlue extends OpMode {
                 case 3:
                     pathTimer.resetTimer();
                     if (!servos.isRunning()) {
-                        follower.setMaxPower(0.8);
                         intake.setPower(-1);
                         follow.followPath(paths.shootToIntake);
                         pathState = 4;
@@ -255,27 +267,19 @@ public class AltCloseBlue extends OpMode {
                     break;
 
                 case 4:
-                    if (pathTimer.getElapsedTimeSeconds() > 2) {
-                        follow.followPath(paths.intakeToRelease);
+                    if (follow.atPose(intakePose,2,2) || pathTimer.getElapsedTimeSeconds() > 4 ) {
+                        follow.followPath(paths.intakeToFiring);
                         pathState = 5;
                     }
                     break;
 
                 case 5:
-                    if (follow.atPose(initialRelease, 3, 3)) {
-                        follower.setMaxPower(1);
-                        follow.followPath(paths.releaseToShoot);
-                        pathTimer.resetTimer();
-                        pathState = 6;
-                    }
-                    break;
-
-                case 6:
                     if (follow.atPose(firingPose, 2, 2)) {
                         servos.StartNonSort();
                         pathState = 7;
                     }
                     break;
+
                 case 7:
                     if (!servos.isRunning()){
                         follow.followPath(shootToRelease);
@@ -285,9 +289,12 @@ public class AltCloseBlue extends OpMode {
                     break;
                 case 8:
                     if (follow.atPose(repeatRelease, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() >= 5){
+                        if (pathTimer.getElapsedTimeSeconds() >= 3.4){
                             follow.followPath(repeatReleaseToShoot);
                             pathState = 9;
+                        }
+                        if (pathTimer.getElapsedTimeSeconds() > 3.4){
+                            intake.setPower(1);
                         }
                         }
 
@@ -302,10 +309,41 @@ public class AltCloseBlue extends OpMode {
                     break;
                 case 10:
                     if (!servos.isRunning()) {
+                        timesShot = timesShot+1;
                         follow.followPath(shootToRelease);
+                        intake.setPower(-1);
                         pathState = 7;
                     }
                     break;
+                case 11:
+                    follow.followPath(firingToCloseIntake);
+                    intake.setPower(-1);
+                    pathTimer.resetTimer();
+                    pathState = 12;
+                    break;
+                case 12:
+                    if (follow.atPose(closeIntake,2,2)){
+                        follow.followPath(closeIntakeToFiring);
+                        pathState = 13;
+                    }
+                    break;
+                case 13:
+                    if (follow.atPose(firingPose,2,2)){
+                        servos.StartNonSort();
+                        pathState = 14;
+                    }
+                    break;
+                case 14:
+                    if (!servos.isRunning()){
+                        follow.followPath(endPath);
+                        pathState = 15;
+                    }
+                    break;
+                case 15:
+                    if (follow.atPose(firingPose,2,2)){
+                        intake.setPower(0);
+                        flywheel.disable();
+                    }
                     }
                 return pathState;
             }
