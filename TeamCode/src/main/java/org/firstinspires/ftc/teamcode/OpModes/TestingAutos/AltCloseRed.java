@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
+package org.firstinspires.ftc.teamcode.OpModes.TestingAutos;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
@@ -14,12 +14,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
-import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Alt Close Blue")
-public class AltCloseBlue extends OpMode {
+@Autonomous(name = "Alt Close Red")
+public class AltCloseRed extends OpMode {
 
     // Hardware
     private DcMotorEx intake;
@@ -27,7 +27,7 @@ public class AltCloseBlue extends OpMode {
 
     private Follower follower;
     private MecanumConstants mecanumConstants;
-    private OdoAimBlue turret;
+    private OdoAim turret;
     private ColorSensors sensors;
     private ServoGroup servos;
     private AutoFlywheelConstants flywheel;
@@ -43,13 +43,12 @@ public class AltCloseBlue extends OpMode {
     private int pathState = 0;
 
     // Poses
-    private static final Pose startPose = new Pose(21.458, 123.738, Math.toRadians((141)));
-    private static final Pose firingPose = new Pose(55.402, 88.15, Math.toRadians((180)));
+    private static final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(37));
+    private static final Pose firingPose = new Pose(95.1028, 93.9813, Math.toRadians((0)));
 
-    private static final Pose intakePose = new Pose(12.028, 58.290, Math.toRadians(180));
-    private static final Pose initialRelease = new Pose(15.953, 76.850, Math.toRadians(180));
-    private final Pose repeatRelease = new Pose(9.505, 59.0, Math.toRadians(150));
-    private static final Pose closeIntake = new Pose(17.87,84.037, Math.toRadians(180));
+    private static final Pose intakePose = new Pose(125.972, 59.290, Math.toRadians(0));
+    private static final Pose initialRelease = new Pose(128.047, 72.850, Math.toRadians(0));
+    private final Pose repeatRelease = new Pose(132.495, 61.981, Math.toRadians(25));
 
     @Override
     public void init() {
@@ -60,7 +59,7 @@ public class AltCloseBlue extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAimBlue(hardwareMap, follower, false);
+        turret = new OdoAim(hardwareMap, follower, false);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -86,10 +85,9 @@ public class AltCloseBlue extends OpMode {
 
 
         turret.odoAim();
-        flywheel.update(-follower.getVelocity().getXComponent() * 50);
 
-        flywheel.setConstantRPM(3450);
-        flywheel.setConstantHood(15);
+        flywheel.update(-follower.getVelocity().getXComponent() * 50);
+        flywheel.setConstantRPM(3000);
 
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 27.5) {
             endTriggered = true;
@@ -129,9 +127,6 @@ public class AltCloseBlue extends OpMode {
         public PathChain shootToRelease;
         public PathChain pickupAndReleaseToShoot;
         public PathChain endPath;
-        public PathChain firingToCloseIntake;
-        public PathChain closeIntakeToFiring;
-        public PathChain repeatReleaseToShoot;
 
         private Follower follow;
 
@@ -146,15 +141,15 @@ public class AltCloseBlue extends OpMode {
                 .build();
 
             shootToIntake = follower.pathBuilder().addPath(
-                    new BezierCurve(firingPose, new Pose(56.069831775700926, 64.1498598130841), intakePose)
-                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                    new BezierCurve(firingPose, new Pose(80.304, 54.505), intakePose)
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                 .build();
 
             intakeToRelease = follower.pathBuilder().addPath(
                     new BezierCurve(
                         intakePose,
-                        new Pose(28.45,66.335),
+                        new Pose(115.55,66.335),
                         initialRelease
                     )
                 ).setLinearHeadingInterpolation(intakePose.getHeading(), initialRelease.getHeading())
@@ -168,19 +163,11 @@ public class AltCloseBlue extends OpMode {
                 ).setLinearHeadingInterpolation(initialRelease.getHeading(), firingPose.getHeading())
 
                 .build();
-            repeatReleaseToShoot = follower.pathBuilder().addPath(
-                new BezierCurve(
-                    repeatRelease,
-                    new Pose(33.803878504672895, 64.12153271028038),
-                    firingPose
-                )
-            ).setLinearHeadingInterpolation(repeatRelease.getHeading(), firingPose.getHeading())
-                .build();
 
             shootToRelease = follower.pathBuilder().addPath(
                     new BezierCurve(
                         firingPose,
-                        new Pose(33.803878504672895, 64.12153271028038),
+                        new Pose(115.55, 47.972),
                         repeatRelease
                     )
                 ).setLinearHeadingInterpolation(firingPose.getHeading(), repeatRelease.getHeading())
@@ -188,36 +175,20 @@ public class AltCloseBlue extends OpMode {
                 .build();
 
             pickupAndReleaseToShoot = follower.pathBuilder().addPath(
-                    new BezierCurve(
-                        repeatRelease,
-                        new Pose(40.08425233644859, 57.61685981308412),
+                    new BezierLine(
+                        new Pose(132.495, 60.981),
+
                         firingPose
                     )
-                ).setLinearHeadingInterpolation(repeatRelease.getHeading(), firingPose.getHeading())
+                ).setLinearHeadingInterpolation(Math.toRadians(25), Math.toRadians(0))
 
                 .build();
             endPath = follower.pathBuilder().addPath(
                     new BezierLine(
-                        new Pose(46.449, 99.196),
+                        new Pose(97.551, 99.196),
                         firingPose
                     )
-                ).setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(141))
-                .build();
-            firingToCloseIntake = follower.pathBuilder().addPath(
-                new BezierCurve(
-                    firingPose,
-                    new Pose(42.205672897196266, 82.9161214953271),
-                    closeIntake
-                )
-            ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-                .build();
-            closeIntakeToFiring = follower.pathBuilder().addPath(
-                new BezierCurve(
-                    closeIntake,
-                    new Pose(42.205672897196266, 82.9161214953271),
-                    firingPose
-                )
-            ) .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
         }
 
@@ -286,10 +257,10 @@ public class AltCloseBlue extends OpMode {
                 case 8:
                     if (follow.atPose(repeatRelease, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() >= 5){
-                            follow.followPath(repeatReleaseToShoot);
+                            follow.followPath(releaseToShoot);
                             pathState = 9;
                         }
-                        }
+                    }
 
                     break;
 
@@ -306,11 +277,11 @@ public class AltCloseBlue extends OpMode {
                         pathState = 7;
                     }
                     break;
-                    }
-                return pathState;
             }
+            return pathState;
         }
     }
+}
 
 
 
