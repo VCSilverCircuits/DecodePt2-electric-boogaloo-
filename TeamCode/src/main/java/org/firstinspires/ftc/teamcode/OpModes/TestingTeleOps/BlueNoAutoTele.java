@@ -44,6 +44,7 @@ public class BlueNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));
 
         odoAim = new OdoAimBlue(hardwareMap, follower, true);
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, true);
@@ -77,18 +78,18 @@ public class BlueNoAutoTele extends OpMode {
         lift2.setPosition(0.92);
     }
     @Override
-    public void start(){follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));}
+    public void start(){follower.startTeleOpDrive();
+        flywheel.enable();}
 
     @Override
     public void loop() {
+        follower.update();
         follower.setTeleOpDrive(
             -gamepad1.left_stick_y,
             -gamepad1.left_stick_x,
             -gamepad1.right_stick_x * 0.5,
             true
         );
-
-        follower.update();
         flywheel.update(-gamepad1.left_stick_y * 50);
 
         odoAim.update();
