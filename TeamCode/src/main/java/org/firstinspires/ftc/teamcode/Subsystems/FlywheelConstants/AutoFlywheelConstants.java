@@ -22,8 +22,8 @@ public class AutoFlywheelConstants {
     private static final double RPM_INTERCEPT = 1134.33841;
 
     // Hood Regression
-    private static final double HOOD_SLOPE = -0.050766;
-    private static final double HOOD_INTERCEPT = 109.12875;
+    private static final double HOOD_SLOPE = -0.880766;
+    private static final double HOOD_INTERCEPT = 139.12875;
 
     private final double velocityCompGain = 2.0;
 
@@ -93,25 +93,36 @@ public class AutoFlywheelConstants {
             applyHoodAngle(targetHoodAngle);
         }
 
-        if (constantRPMMode || constantHoodMode) {
+        /*if (constantRPMMode || constantHoodMode) {
             return;
+        }*/
+
+
+
+        if (!constantRPMMode) {
+            double robotX = follower.getPose().getX();
+            double robotY = follower.getPose().getY();
+
+            double dx = goalX - robotX;
+            double dy = goalY - robotY;
+            double distance = Math.hypot(dx, dy);
+            double baseRPM = getRegressionRPM(distance);
+            targetRPM = baseRPM + velocityCompGain * robotForwardVelocity;
+            applyRPM();
         }
 
-        double robotX = follower.getPose().getX();
-        double robotY = follower.getPose().getY();
+        if(!constantHoodMode) {
+            double robotX = follower.getPose().getX();
+            double robotY = follower.getPose().getY();
 
-        double dx = goalX - robotX;
-        double dy = goalY - robotY;
-        double distance = Math.hypot(dx, dy);
+            double dx = goalX - robotX;
+            double dy = goalY - robotY;
+            double distance = Math.hypot(dx, dy);
+            double baseHood = getRegressionHood(distance);
+            targetHoodAngle = baseHood;
+            applyHoodAngle(targetHoodAngle);
+        }
 
-        double baseRPM = getRegressionRPM(distance);
-        double baseHood = getRegressionHood(distance);
-
-        targetRPM = baseRPM + velocityCompGain * robotForwardVelocity;
-        targetHoodAngle = baseHood;
-
-        applyRPM();
-        applyHoodAngle(targetHoodAngle);
     }
 
     public void setConstantRPM(double rpm) {
