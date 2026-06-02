@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
@@ -27,7 +28,7 @@ public class AltCloseRed extends OpMode {
 
     private Follower follower;
     private MecanumConstants mecanumConstants;
-    private OdoAimBlue turret;
+    private OdoAim turret;
     private ColorSensors sensors;
     private ServoGroup servos;
     private AutoFlywheelConstants flywheel;
@@ -49,8 +50,8 @@ public class AltCloseRed extends OpMode {
 
     private static final Pose intakePose = new Pose(131.56078504672897, 64.12177570093458, Math.toRadians(0));
     private static final Pose initialRelease = new Pose(128.047, 76.850, Math.toRadians(0));
-    private final Pose repeatRelease = new Pose(132.1, 60.1, Math.toRadians(35));
-    private static final Pose closeIntake = new Pose(123.82158878504673, 90.29868224299065, Math.toRadians(0));
+    private final Pose repeatRelease = new Pose(132.1, 60.3, Math.toRadians(30));
+    private static final Pose closeIntake = new Pose(123.82158878504673, 90.8, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -61,7 +62,7 @@ public class AltCloseRed extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAimBlue(hardwareMap, follower, false);
+        turret = new OdoAim(hardwareMap, follower, false);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
