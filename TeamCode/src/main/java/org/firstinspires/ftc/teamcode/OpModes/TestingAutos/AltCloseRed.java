@@ -50,8 +50,11 @@ public class AltCloseRed extends OpMode {
 
     private static final Pose intakePose = new Pose(131.56078504672897, 64.12177570093458, Math.toRadians(0));
     private static final Pose initialRelease = new Pose(128.047, 76.850, Math.toRadians(0));
-    private final Pose repeatRelease = new Pose(132.1, 60.3, Math.toRadians(30));
+    private final Pose repeatRelease = new Pose(126.0, 65.25, Math.toRadians(24));
     private static final Pose closeIntake = new Pose(123.82158878504673, 90.8, Math.toRadians(0));
+    private static final Pose backOffFromRamp = new Pose((140-11.7),55.5, Math.toRadians((180-156)));
+
+    private static boolean hasStartedFlywheel = false;
 
     @Override
     public void init() {
@@ -77,6 +80,11 @@ public class AltCloseRed extends OpMode {
         poseTimer = new Timer();
 
         paths = new Paths(follower);
+        //This offset applies through the entire opMode.
+        turret.manualOffsetRad = -Math.toRadians(8);
+
+        //This ensures that the flywheel does not reactivate at the end after turning it off
+        hasStartedFlywheel = false;
     }
 
     @Override
