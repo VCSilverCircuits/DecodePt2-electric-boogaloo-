@@ -93,9 +93,6 @@ public class AutoFlywheelConstants {
             applyHoodAngle(targetHoodAngle);
         }
 
-        /*if (constantRPMMode || constantHoodMode) {
-            return;
-        }*/
 
 
 

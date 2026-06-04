@@ -29,7 +29,7 @@ public class OdoAimBlue {
     public static double RADIANSPERTICK = 0.001062;
 
     // ================= OFFSET SYSTEM =================
-    private double manualOffsetRad = 0.0;
+    public double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
     Pose REDTARGET = new Pose(152.0 , 146.0 );

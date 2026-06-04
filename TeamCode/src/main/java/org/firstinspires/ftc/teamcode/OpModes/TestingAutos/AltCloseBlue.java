@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
+import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AltBlueFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
@@ -45,12 +46,14 @@ public class AltCloseBlue extends OpMode {
 
     // Poses
     private static final Pose startPose = new Pose(21.458, 123.738, Math.toRadians((141)));
-    private static final Pose firingPose = new Pose(55.402, 88.15, Math.toRadians((180)));
+    private static final Pose firingPose = new Pose(55.402, 91.15, Math.toRadians((180)));
 
-    private static final Pose intakePose = new Pose(12.43921495327103, 64.12177570093458, Math.toRadians(180));
+    private static final Pose intakePose = new Pose(12.43921495327103, 67.12177570093458, Math.toRadians(180));
     private static final Pose initialRelease = new Pose(15.953, 76.850, Math.toRadians(180));
-    private final Pose repeatRelease = new Pose(11.9, 60.1, Math.toRadians(145));
-    private static final Pose closeIntake = new Pose(20.17841121495327,90.29868224299065, Math.toRadians(180));
+    private final Pose repeatRelease = new Pose(13.7, 62.5, Math.toRadians(148.5));// 13.5,62.5, 153
+    private static final Pose closeIntake = new Pose(20.17841121495327,97.29868224299065, Math.toRadians(180));
+
+    private static boolean hasStartedFlywheel = false;
 
     @Override
     public void init() {
@@ -76,7 +79,11 @@ public class AltCloseBlue extends OpMode {
         poseTimer = new Timer();
 
         paths = new Paths(follower);
+
+        turret.manualOffsetRad = -Math.toRadians(8);
+        hasStartedFlywheel = false;
     }
+
 
     @Override
     public void loop() {
@@ -89,8 +96,11 @@ public class AltCloseBlue extends OpMode {
         turret.odoAim();
         flywheel.update(-follower.getVelocity().getXComponent() * 50);
 
-        flywheel.setConstantRPM(3000);
-        flywheel.setConstantHood(70);
+        if (!hasStartedFlywheel) {
+            flywheel.setConstantRPM(3000);
+            flywheel.setConstantHood(70);
+            hasStartedFlywheel = true;
+        }
 
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
@@ -152,7 +162,7 @@ public class AltCloseBlue extends OpMode {
                 .build();
 
             shootToIntake = follower.pathBuilder().addPath(
-                    new BezierCurve(firingPose, new Pose(54.6212336448598, 61.505), intakePose)
+                    new BezierCurve(firingPose, new Pose(54.6212336448598, 67.505), intakePose)
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                 .build();
@@ -204,8 +214,9 @@ public class AltCloseBlue extends OpMode {
                 .build();
             endPath = follower.pathBuilder().addPath(
                     new BezierLine(
-                        new Pose(46.449, 99.196),
-                        firingPose
+                        //new Pose(46.449, 99.196),
+                        firingPose,
+                            new Pose(55.402, 111, Math.toRadians((180))) // Off the line end position
                     )
                 ).setLinearHeadingInterpolation(Math.toRadians(141), Math.toRadians(141))
                 .build();
@@ -328,6 +339,10 @@ public class AltCloseBlue extends OpMode {
                     }
                     break;
                 case 13:
+                    //backspin once we've backed away
+                    if (pathTimer.getElapsedTimeSeconds() > 2.0) {
+                        intake.setPower(1);
+                    }
                     if (follow.atPose(firingPose,2,2)){
                         servos.StartNonSort();
                         pathState = 14;

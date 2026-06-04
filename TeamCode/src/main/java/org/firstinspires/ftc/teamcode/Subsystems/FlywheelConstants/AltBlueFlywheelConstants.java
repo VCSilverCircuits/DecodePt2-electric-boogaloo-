@@ -62,6 +62,7 @@ public class AltBlueFlywheelConstants {
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
         // ================= ALLIANCE TARGET =================
+        //This is where we set exact positions of red/blue goals for alt autos
         if (isRed) {
             goalX = 152.0;
             goalY = 142.0;
