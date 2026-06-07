@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.MatchMotif;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
-
-@TeleOp(name = "Motif TeleOp")
+@Disabled
 public class MotifShooterTeleOp extends LinearOpMode {
 
     private ColorSensors sensors;

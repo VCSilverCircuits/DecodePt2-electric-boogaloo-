@@ -42,6 +42,7 @@ public class RedTele extends OpMode {
     private boolean turretTrackingEnabled = false;
     private boolean lastTurretButton = false;
 
+    private boolean lastDpadUp = false;
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
     private boolean lastDpadDown = false;
@@ -129,11 +130,21 @@ public class RedTele extends OpMode {
 
         // -------- OFFSET CONTROLS --------
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            odoAim.changeTarget(true, false);
+            odoAim.changeTargetX(false, true);
         }
         if (gamepad1.dpad_right && !lastDpadRight) {
-            odoAim.changeTarget(false, true);
+            odoAim.changeTargetX(true, false);
         }
+        if (gamepad1.dpad_up && !lastDpadUp) {
+            odoAim.changeTargetY(true, false);
+        }
+        if (gamepad1.dpad_down && !lastDpadDown) {
+            odoAim.changeTargetY(false, true);
+        }
+        lastDpadUp = gamepad1.dpad_up;
+        lastDpadLeft = gamepad1.dpad_left;
+        lastDpadRight = gamepad1.dpad_right;
+        lastDpadDown = gamepad1.dpad_down;
 
         lastDpadLeft = gamepad1.dpad_left;
         lastDpadRight = gamepad1.dpad_right;

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,9 +16,8 @@ import com.bylazar.telemetry.TelemetryManager;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-
+@Disabled
 @Configurable
-@TeleOp(name = "Ursa TeleOp")
 public class UrsaTestTele extends OpMode {
 
     // Subsystems

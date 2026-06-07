@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
+package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -8,16 +8,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
-import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.TeleFlywheelConstants;
+import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.BlueTeleFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
-import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-@TeleOp(name = "No Auto Red Tele")
-public class RedNoAutoTele extends OpMode {
-    private TeleFlywheelConstants flywheel;
+
+@TeleOp(name = "No Auto Blue Tele")
+public class BlueNoAutoTele extends OpMode {
+    private BlueTeleFlywheelConstants flywheel;
     private Follower follower;
-    private OdoAim odoAim;
+    private OdoAimBlue odoAim;
     private ServoGroup servos;
     private ColorSensors sensors;
 
@@ -37,16 +38,17 @@ public class RedNoAutoTele extends OpMode {
 
     private boolean turretTrackingEnabled = false;
     private boolean lastTurretButton = false;
-
+    private boolean lastDpadUp = false;
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
     private boolean lastDpadDown = false;
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(135.62616822429905, 8.635514018691586, Math.toRadians(0)));
-        odoAim = new OdoAim(hardwareMap, follower, true);
-        flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
+        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));
+
+        odoAim = new OdoAimBlue(hardwareMap, follower, true);
+        flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
@@ -77,15 +79,11 @@ public class RedNoAutoTele extends OpMode {
         lift2.setPosition(0.92);
     }
     @Override
-    public void start(){
-        follower.startTeleOpDrive();
-        flywheel.enable();
-    }
+    public void start(){follower.startTeleOpDrive();
+        flywheel.enable();}
 
     @Override
     public void loop() {
-
-
         follower.update();
         follower.setTeleOpDrive(
             -gamepad1.left_stick_y,
@@ -117,12 +115,18 @@ public class RedNoAutoTele extends OpMode {
 
         // -------- OFFSET CONTROLS --------
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            odoAim.changeTarget(true, false);
+            odoAim.changeTargetX(false, true);
         }
         if (gamepad1.dpad_right && !lastDpadRight) {
-            odoAim.changeTarget(false, true);
+            odoAim.changeTargetX(true, false);
         }
-
+        if (gamepad1.dpad_up && !lastDpadUp) {
+            odoAim.changeTargetY(true, false);
+        }
+        if (gamepad1.dpad_down && !lastDpadDown) {
+            odoAim.changeTargetY(false, true);
+        }
+        lastDpadUp = gamepad1.dpad_up;
         lastDpadLeft = gamepad1.dpad_left;
         lastDpadRight = gamepad1.dpad_right;
         lastDpadDown = gamepad1.dpad_down;

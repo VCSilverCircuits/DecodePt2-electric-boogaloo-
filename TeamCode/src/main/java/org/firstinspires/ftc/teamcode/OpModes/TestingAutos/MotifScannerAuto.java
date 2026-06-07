@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode.OpModes.TestingAutos;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.MotifDetector;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.MatchMotif;
-
-@Autonomous(name = "MotifScannerAuto")
+@Disabled
 public class MotifScannerAuto extends LinearOpMode {
 
     private MotifDetector detector;

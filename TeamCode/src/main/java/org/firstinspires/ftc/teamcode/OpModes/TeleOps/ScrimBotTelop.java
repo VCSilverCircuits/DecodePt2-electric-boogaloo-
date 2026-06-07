@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Disabled
-@TeleOp(name = "ScrimBotTelop")
 public class ScrimBotTelop extends OpMode{
     private DcMotorEx Lr;
     private DcMotorEx Rr;

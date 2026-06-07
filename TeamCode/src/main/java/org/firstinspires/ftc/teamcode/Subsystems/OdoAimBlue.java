@@ -106,7 +106,7 @@ public class OdoAimBlue {
     }
 
     // ================= OFFSET CONTROLS =================
-    public void changeTarget(boolean dpadRight, boolean dpadLeft) {
+    public void changeTargetX(boolean dpadRight, boolean dpadLeft) {
         if (dpadRight) {
             // Example: move turret target slightly forward in X
             targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
@@ -114,6 +114,16 @@ public class OdoAimBlue {
         if (dpadLeft) {
             // Example: move turret target slightly backward in X
             targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
+        }
+    }
+    public void changeTargetY(boolean dpadUp, boolean dpadDown) {
+        if (dpadUp) {
+            // Example: move turret target slightly forward in X
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() + 3);
+        }
+        if (dpadDown) {
+            // Example: move turret target slightly backward in X
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() - 3);
         }
     }
     public void setTeleTarget(double x, double y) {

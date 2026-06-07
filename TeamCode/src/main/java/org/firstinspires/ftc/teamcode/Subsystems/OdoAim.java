@@ -128,12 +128,24 @@ public class OdoAim {
     }
 
     // ================= OFFSET CONTROLS =================
-    public void changeTarget(boolean dpadRight, boolean dpadLeft) {
+    public void changeTargetX(boolean dpadRight, boolean dpadLeft) {
         if (dpadRight) {
+            // Example: move turret target slightly forward in X
             targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
         }
         if (dpadLeft) {
+            // Example: move turret target slightly backward in X
             targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
+        }
+    }
+    public void changeTargetY(boolean dpadUp, boolean dpadDown) {
+        if (dpadUp) {
+            // Example: move turret target slightly forward in Y
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() + 3);
+        }
+        if (dpadDown) {
+            // Example: move turret target slightly backward in X
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() - 3);
         }
     }
 
@@ -189,17 +201,6 @@ public class OdoAim {
         manualOffsetRad = 0.0;
     }
 
-    public void recalibration(Follower follower) {
-        this.follower = follower;
-
-        Pose currentPose = follower.getPose();
-
-        double newX = currentPose.getX() + 15.0;
-        double newY = currentPose.getY() - 17.0;
-
-        targetPose = new Pose(newX, newY);
-    }
-
     public void restoreFromStorage(double storedTurretRadians) {
 
         turretPosition = storedTurretRadians;
@@ -208,5 +209,8 @@ public class OdoAim {
         limelightPIDF.reset();
 
         manualOffsetRad = 0.0;
+    }
+    public Pose getTargetPose(){
+        return targetPose;
     }
 }

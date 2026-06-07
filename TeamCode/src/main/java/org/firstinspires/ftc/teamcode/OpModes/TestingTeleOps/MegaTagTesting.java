@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.OpModes.TestingTeleOps;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-@TeleOp(name="MegaTag")
+@Disabled
 public class MegaTagTesting extends OpMode {
     Limelight3A limelight;
     LLResult result;

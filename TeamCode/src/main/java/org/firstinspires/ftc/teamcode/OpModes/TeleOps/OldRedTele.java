@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,8 +14,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-@TeleOp(name="Red TeleOp (Old)")
+@Disabled
 public class OldRedTele extends OpMode {
     AprilTagTurretControllerRed turretController;
     ColorSensors sensors;
