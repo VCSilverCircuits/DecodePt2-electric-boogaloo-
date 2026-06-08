@@ -45,7 +45,7 @@ public class RedNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(180)));
         odoAim = new OdoAim(hardwareMap, follower, true);
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 

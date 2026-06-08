@@ -45,11 +45,10 @@ public class BlueNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-       // follower.setStartingPose(new Pose(135.62616822429905, 8.635514018691586, Math.toRadians(0)));
-        follower.setStartingPose(new Pose(135.6261682242990, 8.635514018691586, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(144, 0, Math.toRadians(0)));
 
-        odoAim = new OdoAimBlue(hardwareMap, follower, true);
-        flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, true);
+        odoAim = new OdoAimBlue(hardwareMap, follower, false);
+        flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
@@ -206,6 +205,8 @@ public class BlueNoAutoTele extends OpMode {
 
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
+        telemetry.addData("target position X", odoAim.getTargetPose().getX());
+        telemetry.addData("target position X", odoAim.getTargetPose().getY());
         telemetry.update();
     }
 }

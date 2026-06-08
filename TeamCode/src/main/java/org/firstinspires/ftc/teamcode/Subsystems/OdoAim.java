@@ -32,9 +32,8 @@ public class OdoAim {
     private double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-    // ✅ TRUE CONSTANTS (never modified directly)
     public static final Pose REDTARGET = new Pose(150, 130);
-    public static final Pose REDTARGET_TELE = new Pose(150, 130);
+    public static final Pose REDTARGET_TELE = new Pose(125, 137);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -131,21 +130,21 @@ public class OdoAim {
     public void changeTargetX(boolean dpadRight, boolean dpadLeft) {
         if (dpadRight) {
             // Example: move turret target slightly forward in X
-            targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
+            targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
         }
         if (dpadLeft) {
             // Example: move turret target slightly backward in X
-            targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
+            targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
         }
     }
     public void changeTargetY(boolean dpadUp, boolean dpadDown) {
         if (dpadUp) {
             // Example: move turret target slightly forward in Y
-            targetPose = new Pose(targetPose.getX() , targetPose.getY() + 3);
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() - 3);
         }
         if (dpadDown) {
-            // Example: move turret target slightly backward in X
-            targetPose = new Pose(targetPose.getX() , targetPose.getY() - 3);
+            // Example: move turret target slightly backward in Y
+            targetPose = new Pose(targetPose.getX() , targetPose.getY() + 3);
         }
     }
 
