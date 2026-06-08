@@ -45,7 +45,8 @@ public class RedNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(135.62616822429905, 8.635514018691586, Math.toRadians(0)));
+
+        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));
         odoAim = new OdoAim(hardwareMap, follower, true);
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
@@ -118,16 +119,16 @@ public class RedNoAutoTele extends OpMode {
 
         // -------- OFFSET CONTROLS --------
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            odoAim.changeTargetX(false, true);
-        }
-        if (gamepad1.dpad_right && !lastDpadRight) {
             odoAim.changeTargetX(true, false);
         }
+        if (gamepad1.dpad_right && !lastDpadRight) {
+            odoAim.changeTargetX(false, true);
+        }
         if (gamepad1.dpad_up && !lastDpadUp) {
-            odoAim.changeTargetY(true, false);
+            odoAim.changeTargetY(false, true);
         }
         if (gamepad1.dpad_down && !lastDpadDown) {
-            odoAim.changeTargetY(false, true);
+            odoAim.changeTargetY(true, false);
         }
         lastDpadUp = gamepad1.dpad_up;
         lastDpadLeft = gamepad1.dpad_left;

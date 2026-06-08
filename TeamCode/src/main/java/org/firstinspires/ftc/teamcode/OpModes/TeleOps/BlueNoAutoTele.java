@@ -45,7 +45,8 @@ public class BlueNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(8.672897196261653, 9.30841121495326, Math.toRadians(0)));
+       // follower.setStartingPose(new Pose(135.62616822429905, 8.635514018691586, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(135.6261682242990, 8.635514018691586, Math.toRadians(0)));
 
         odoAim = new OdoAimBlue(hardwareMap, follower, true);
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, true);
@@ -115,10 +116,10 @@ public class BlueNoAutoTele extends OpMode {
 
         // -------- OFFSET CONTROLS --------
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            odoAim.changeTargetX(false, true);
+            odoAim.changeTargetX(true, false);
         }
         if (gamepad1.dpad_right && !lastDpadRight) {
-            odoAim.changeTargetX(true, false);
+            odoAim.changeTargetX(false, true);
         }
         if (gamepad1.dpad_up && !lastDpadUp) {
             odoAim.changeTargetY(true, false);
