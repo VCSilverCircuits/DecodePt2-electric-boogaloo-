@@ -23,6 +23,7 @@ public class BlueNoAutoTele extends OpMode {
     private ColorSensors sensors;
 
     private DcMotorEx intake;
+
     private Servo lift1, lift2;
     private Servo stopper;
     private Servo servo1, servo2, servo3;
@@ -79,7 +80,8 @@ public class BlueNoAutoTele extends OpMode {
         lift2.setPosition(0.92);
     }
     @Override
-    public void start(){follower.startTeleOpDrive();
+    public void start(){
+        follower.startTeleOpDrive();
         flywheel.enable();}
 
     @Override

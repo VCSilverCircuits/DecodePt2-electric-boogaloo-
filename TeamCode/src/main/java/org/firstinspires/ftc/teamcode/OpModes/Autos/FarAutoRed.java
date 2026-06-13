@@ -27,6 +27,7 @@ public class FarAutoRed extends OpMode {
 
     private Follower follower;
     private MecanumConstants mecanumConstants;
+
     private OdoAim turret;
     private ColorSensors sensors;
     private ServoGroup servos;

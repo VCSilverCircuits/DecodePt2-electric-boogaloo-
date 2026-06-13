@@ -111,6 +111,7 @@ public class BlueTele extends OpMode {
 
         follower.update();
         flywheel.update(-gamepad1.left_stick_y * 50);
+
         odoAim.odoAim();
         odoAim.update();
         servos.loop();

@@ -41,6 +41,9 @@ public class AutoFlywheelConstants {
     private boolean constantHoodMode = false;
     private double constantHood = 0;
 
+    //Offset variable in case we want to make one opmode lower RPM
+    public double RPMOffset = 0;
+
     /**
      * @param hardwareMap FTC hardware map
      * @param follower    Odometry follower
@@ -69,8 +72,8 @@ public class AutoFlywheelConstants {
             goalX = 152.0;
             goalY = 142.0;
         } else {
-            goalX = 12;
-            goalY = 135.0;
+            goalX = 20;
+            goalY = 129.0;
         }
     }
 
@@ -84,7 +87,7 @@ public class AutoFlywheelConstants {
 
         // ===== CONSTANT MODES =====
         if (constantRPMMode) {
-            targetRPM = constantRPM;
+            targetRPM = constantRPM + RPMOffset;
             applyRPM();
         }
 
@@ -104,7 +107,7 @@ public class AutoFlywheelConstants {
             double dy = goalY - robotY;
             double distance = Math.hypot(dx, dy);
             double baseRPM = getRegressionRPM(distance);
-            targetRPM = baseRPM + velocityCompGain * robotForwardVelocity;
+            targetRPM = baseRPM + velocityCompGain * robotForwardVelocity + RPMOffset;
             applyRPM();
         }
 

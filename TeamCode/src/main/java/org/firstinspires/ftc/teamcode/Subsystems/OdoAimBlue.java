@@ -32,8 +32,8 @@ public class OdoAimBlue {
     public double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-    Pose REDTARGET = new Pose(152.0 , 146.0 );
-    Pose BLUETARGET = new Pose(21, 138.0);
+    Pose REDTARGET = new Pose(150.0 , 130.0 );
+    Pose BLUETARGET = new Pose(6, 137.0);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);

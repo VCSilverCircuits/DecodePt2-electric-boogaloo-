@@ -43,11 +43,11 @@ public class FarAutoBlue extends OpMode {
     private int pathState = 0;
 
     // Poses
-    private static final Pose startPose = new Pose(59.963, 12.019, Math.toRadians(180));
+    private static final Pose startPose = new Pose(63.2, 8.5, Math.toRadians(180)); //06/12: 60,12,180deg
     private static final Pose firingPose = new Pose(53, 12.019, Math.toRadians(180));
 
-    private static final Pose intake1 = new Pose(15.103, 36, Math.toRadians(180));
-    private static final Pose intake2 = new Pose(7, 13.019, Math.toRadians(180));
+    private static final Pose intake1 = new Pose(9, 35.5, Math.toRadians(180));
+    private static final Pose intake2 = new Pose(9, 13.019, Math.toRadians(180));
     private static final Pose endPose = new Pose(20, 12.019, Math.toRadians(180));
 
     @Override
@@ -74,6 +74,9 @@ public class FarAutoBlue extends OpMode {
         poseTimer = new Timer();
 
         paths = new Paths(follower);
+
+        //we start this opmode with the turret manually at an angle, so instead of physically doing that we apply an offset in code
+        turret.manualOffsetRad = Math.toRadians(6);
     }
 
     @Override
@@ -114,6 +117,8 @@ public class FarAutoBlue extends OpMode {
         PoseStorage.turretRadians = turret.getTurretPosition();
         if (!endTriggered) {
             pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        } else {
+            turret.manualOffsetRad = 0;
         }
     }
 
@@ -232,7 +237,7 @@ public class FarAutoBlue extends OpMode {
                 case 4:
                     intake.setPower(-1);
 
-                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2) {
 
                         if (!intakeDelayStarted) {
                             pathTimer.resetTimer();
@@ -241,7 +246,7 @@ public class FarAutoBlue extends OpMode {
 
                         follow.followPath(intake1ToFiring);
 
-                        if (pathTimer.getElapsedTimeSeconds() > 1) {
+                        if (pathTimer.getElapsedTimeSeconds() > 0.6) {
 
                             intake.setPower(1);
 
@@ -263,7 +268,7 @@ public class FarAutoBlue extends OpMode {
 
                     intake.setPower(-1);
 
-                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2) {
 
                         if (!intakeDelayStarted) {
                             pathTimer.resetTimer();
@@ -280,7 +285,7 @@ public class FarAutoBlue extends OpMode {
                     follow.followPath(intake2ToFiring);
                     follower.setMaxPower(0.8);
 
-                    if (pathTimer.getElapsedTimeSeconds() > 1) {
+                    if (pathTimer.getElapsedTimeSeconds() > 0.6) {
 
                         intake.setPower(1);
 
