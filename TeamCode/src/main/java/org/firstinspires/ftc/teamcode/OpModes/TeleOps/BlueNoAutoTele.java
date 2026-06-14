@@ -43,12 +43,15 @@ public class BlueNoAutoTele extends OpMode {
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
     private boolean lastDpadDown = false;
+    private boolean lastBack = false;
+
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(144, 0, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(131.5, 8.5, Math.toRadians(0)));
 
         odoAim = new OdoAimBlue(hardwareMap, follower, false);
+        //odoAim.manualOffsetRad = Math.toRadians(-20); //start with turret offset
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
@@ -205,10 +208,15 @@ public class BlueNoAutoTele extends OpMode {
             lift2.setPosition(0.92);
         }
 
+        if (gamepad1.back && !lastBack) {
+            odoAim.syncToCurrentPosition();
+        }
+        lastBack = gamepad1.back;
+
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
         telemetry.addData("target position X", odoAim.getTargetPose().getX());
-        telemetry.addData("target position X", odoAim.getTargetPose().getY());
+        telemetry.addData("target position Y", odoAim.getTargetPose().getY());
         telemetry.update();
     }
 }

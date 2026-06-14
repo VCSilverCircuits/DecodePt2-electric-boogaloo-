@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -19,17 +21,18 @@ public class BlueTeleFlywheelConstants {
     // ================= LINEAR REGRESSION CONSTANTS =================
 
     // RPM Regression
-    private static final double RPM_SLOPE = 20;
-    private static final double RPM_INTERCEPT = 1100;
+    private static final double RPM_SLOPE = 19.5;
+    private static final double RPM_INTERCEPT = 1000;
 
     // Hood Regression
-    private static final double HOOD_SLOPE = -0.550766;
-    private static final double HOOD_INTERCEPT = 109.12875;
+
+    private static final double HOOD_SLOPE = -0.50;
+    private static final double HOOD_INTERCEPT = 130.0;
     private Pose targetPose; // current target, can change via D-pad
     double REDTARGETX = 152;
     double REDTARGETY = 142;
-    double BLUETARGETX = -10;
-    double BLUETARGETY = 140;
+    double BLUETARGETX = 6;
+    double BLUETARGETY = 137;
     Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
     Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
 

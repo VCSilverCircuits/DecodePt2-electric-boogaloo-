@@ -32,8 +32,8 @@ public class OdoAimBlue {
     public double manualOffsetRad = 0.0;
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
 
-    Pose REDTARGET = new Pose(150.0 , 130.0 );
-    Pose BLUETARGET = new Pose(6, 137.0);
+    Pose REDTARGET = new Pose(135.0 , 137.0 );
+    Pose BLUETARGET = new Pose(9, 140.0);
 
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -109,11 +109,11 @@ public class OdoAimBlue {
     public void changeTargetX(boolean dpadRight, boolean dpadLeft) {
         if (dpadRight) {
             // Example: move turret target slightly forward in X
-            targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
+            targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
         }
         if (dpadLeft) {
             // Example: move turret target slightly backward in X
-            targetPose = new Pose(targetPose.getX() - 3, targetPose.getY());
+            targetPose = new Pose(targetPose.getX() + 3, targetPose.getY());
         }
     }
     public void changeTargetY(boolean dpadUp, boolean dpadDown) {
