@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetX;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetY;
+
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
