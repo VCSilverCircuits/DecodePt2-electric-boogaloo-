@@ -51,6 +51,7 @@ public class BlueNoAutoTele extends OpMode {
         follower.setStartingPose(new Pose(144, 0, Math.toRadians(0)));
 
         odoAim = new OdoAimBlue(hardwareMap, follower, false);
+        //odoAim.manualOffsetRad = Math.toRadians(-20); //start with turret offset
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
@@ -100,14 +101,6 @@ public class BlueNoAutoTele extends OpMode {
         odoAim.update();
         odoAim.odoAim();
         servos.loop();
-
-        // -------- Update Distance --------
-        robotX = follower.getPose().getX();
-        robotY = follower.getPose().getY();
-
-        dx = odoAim.getTargetPose().getX() - robotX;
-        dy = odoAim.getTargetPose().getY() - robotY;
-        distance = Math.hypot(dx, dy);
 
         // -------- TOGGLE TRACKING --------
         boolean turretButtonPressed = gamepad1.left_bumper;
@@ -214,16 +207,11 @@ public class BlueNoAutoTele extends OpMode {
             lift1.setPosition(0.9);
             lift2.setPosition(0.92);
         }
-        // ================= Update Target Pose =================
-        odoAim.updateTargetPose();
-        // ================= Telemetry =================
+
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
         telemetry.addData("target position X", odoAim.getTargetPose().getX());
-        telemetry.addData("target position Y", odoAim.getTargetPose().getY());
-        telemetry.addData("Distance", distance);
-        telemetry.addData("Hood Angle", flywheel.getRegressionHood(distance));
-        telemetry.addData("RPM", flywheel.getRegressionRPM(distance));
+        telemetry.addData("target position X", odoAim.getTargetPose().getY());
         telemetry.update();
     }
 }
