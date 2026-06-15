@@ -19,18 +19,20 @@ public class TeleFlywheelConstants {
     // ================= LINEAR REGRESSION CONSTANTS =================
 
     // RPM Regression
-    private static final double RPM_SLOPE = 20;
-    private static final double RPM_INTERCEPT = 1100;
+    private static final double RPM_SLOPE_D2 = 0.0725;
+    private static final double RPM_SLOPE_D = 0.8929;
+    private static final double RPM_INTERCEPT = 2336.2930;
 
     // Hood Regression
-    private static final double HOOD_SLOPE = -0.550766;
-    private static final double HOOD_INTERCEPT = 109.12875;
+    private static final double HOOD_SLOPE_D = -1.3688;
+    private static final double HOOD_SLOPE_D2 = 0.0024;
+    private static final double HOOD_INTERCEPT = 176.2621;
     private Pose targetPose; // current target, can change via D-pad
-    double REDTARGETX = 150;
-    double REDTARGETY = 140;
+    double REDTARGETX = 100;
+    double REDTARGETY = 125;
     double BLUETARGETX = -3;
     double BLUETARGETY = 140;
-    Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
+    Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY);
     Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
 
     private final double velocityCompGain = 2.0;
@@ -94,17 +96,14 @@ public class TeleFlywheelConstants {
     }
 
     // ================= RPM REGRESSION =================
-    private double getRegressionRPM(double distance) {
-        double rpm = RPM_SLOPE * distance + RPM_INTERCEPT;
-        if(distance < 97 && distance > 30){
-            rpm = rpm + 300;
-        }
+    public double getRegressionRPM(double distance) {
+        double rpm = (RPM_SLOPE_D2 * (Math.pow(distance, 2))) + (RPM_SLOPE_D * distance) + RPM_INTERCEPT;
         return Math.max(2800, Math.min(10000, rpm));
     }
 
     // ================= HOOD REGRESSION =================
-    private double getRegressionHood(double distance) {
-        double angle = HOOD_SLOPE * distance + HOOD_INTERCEPT;
+    public double getRegressionHood(double distance) {
+        double angle = (HOOD_SLOPE_D2 * Math.pow(distance, 2)) + (HOOD_SLOPE_D * distance) + HOOD_INTERCEPT;//Old Equation: HOOD_SLOPE * distance + HOOD_INTERCEPT;
         return Math.max(-15, Math.min(120, angle));
     }
 

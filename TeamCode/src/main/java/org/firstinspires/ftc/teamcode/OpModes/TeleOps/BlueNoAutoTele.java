@@ -212,6 +212,7 @@ public class BlueNoAutoTele extends OpMode {
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
         telemetry.addData("target position X", odoAim.getTargetPose().getX());
         telemetry.addData("target position X", odoAim.getTargetPose().getY());
+        telemetry.addData("Distance", odoAim.getDistanceToTarget());
         telemetry.update();
     }
 }

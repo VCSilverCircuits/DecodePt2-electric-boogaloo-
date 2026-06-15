@@ -210,4 +210,13 @@ public class OdoAimBlue {
     public void updateTargetPose() {
         BLUETARGET = new Pose(blueTargetX, blueTargetY);
     }
+    public double getDistanceToTarget() {
+        double robotX = follower.getPose().getX();
+        double robotY = follower.getPose().getY();
+
+        double dx = BLUETARGET.getX() - robotX;
+        double dy = BLUETARGET.getY() - robotY;
+        double distance = Math.hypot(dx, dy);
+        return distance;
+    }
 }

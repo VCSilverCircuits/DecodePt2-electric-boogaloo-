@@ -28,9 +28,9 @@ public class BlueTeleFlywheelConstants {
 
     // ================= LINEAR REGRESSION CONSTANTS =================
     //New RPM Regression
-    private static final double RPM_SLOPE_D2 = 0.025096;
-    private static final double RPM_SLOPE_D = 6.860781;
-    private static final double RPM_INTERCEPT = 2133;
+    private static final double RPM_SLOPE_D2 = 0.0725;
+    private static final double RPM_SLOPE_D = 0.8929;
+    private static final double RPM_INTERCEPT = 2336.2930;
 
 
 
@@ -39,9 +39,9 @@ public class BlueTeleFlywheelConstants {
     //private static final double RPM_INTERCEPT = 1100;
 
     //New Hood Regression
-    private static final double HOOD_SLOPE_D = -2.218371;
-    private static final double HOOD_SLOPE_D2 = 0.0072165;
-    private static final double HOOD_INTERCEPT = 217.253;
+    private static final double HOOD_SLOPE_D = -1.3688;
+    private static final double HOOD_SLOPE_D2 = 0.0024;
+    private static final double HOOD_INTERCEPT = 176.2621;
 
     // Old Hood Regression
     //private static final double HOOD_SLOPE = -0.550766;
