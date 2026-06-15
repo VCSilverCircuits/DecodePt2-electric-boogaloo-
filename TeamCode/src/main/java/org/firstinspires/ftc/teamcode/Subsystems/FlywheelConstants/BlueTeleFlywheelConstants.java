@@ -1,39 +1,64 @@
 package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetX;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetY;
+
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-
+@Configurable
 public class BlueTeleFlywheelConstants {
 
     private DcMotorEx leftFlywheel, rightFlywheel;
     private Servo hoodServo;
+    // ================= FLYWHEEL PID CONSTANTS =================
     private PIDFController VelocityPIDF;
+    double flywheelP = 0.0085;
+    double flywheelI = 0.007;
+    double flywheelD = 0.00002;
+    double flywheelF = 0.0004;
+
 
     public static final double TICKS_PER_REV = 28;
 
     // ================= LINEAR REGRESSION CONSTANTS =================
+    //New RPM Regression
+    private static final double RPM_SLOPE_D2 = 0.025096;
+    private static final double RPM_SLOPE_D = 6.860781;
+    private static final double RPM_INTERCEPT = 2133;
 
-    // RPM Regression
-    private static final double RPM_SLOPE = 20;
-    private static final double RPM_INTERCEPT = 1100;
 
-    // Hood Regression
-    private static final double HOOD_SLOPE = -0.550766;
-    private static final double HOOD_INTERCEPT = 109.12875;
+
+    // Old RPM Regression
+    //private static final double RPM_SLOPE = 20;
+    //private static final double RPM_INTERCEPT = 1100;
+
+    //New Hood Regression
+    private static final double HOOD_SLOPE_D = -2.218371;
+    private static final double HOOD_SLOPE_D2 = 0.0072165;
+    private static final double HOOD_INTERCEPT = 217.253;
+
+    // Old Hood Regression
+    //private static final double HOOD_SLOPE = -0.550766;
+    //private static final double HOOD_INTERCEPT = 109.12875;
     private Pose targetPose; // current target, can change via D-pad
     double REDTARGETX = 152;
     double REDTARGETY = 142;
-    double BLUETARGETX = -10;
-    double BLUETARGETY = 140;
-    Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY );
+    double BLUETARGETX = blueTargetX;
+    double BLUETARGETY = blueTargetY;
+    Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY);
     Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
 
     private final double velocityCompGain = 2.0;
+
+    //Adjustable testing values
+    public static double test_angle;
+    public static double test_rpm;
 
     // Alliance-Based Target Positions
 
@@ -62,7 +87,8 @@ public class BlueTeleFlywheelConstants {
         leftFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightFlywheel.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        VelocityPIDF = new PIDFController(0.0085, 0.007, 0.00002, 0.0004);
+        VelocityPIDF = new PIDFController(flywheelP, flywheelI, flywheelD, flywheelF);
+        //p: 0.0085, i:0.007, d:0.00002, 0.0004
 
         leftFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightFlywheel.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
@@ -94,17 +120,14 @@ public class BlueTeleFlywheelConstants {
     }
 
     // ================= RPM REGRESSION =================
-    private double getRegressionRPM(double distance) {
-        double rpm = RPM_SLOPE * distance + RPM_INTERCEPT;
-        if(distance < 97 && distance > 30){
-            rpm = rpm + 300;
-        }
+    public double getRegressionRPM(double distance) {
+        double rpm = (RPM_SLOPE_D2 * (Math.pow(distance, 2))) + (RPM_SLOPE_D * distance) + RPM_INTERCEPT;
         return Math.max(2800, Math.min(10000, rpm));
     }
 
     // ================= HOOD REGRESSION =================
-    private double getRegressionHood(double distance) {
-        double angle = HOOD_SLOPE * distance + HOOD_INTERCEPT;
+    public double getRegressionHood(double distance) {
+        double angle = (HOOD_SLOPE_D2 * Math.pow(distance, 2)) + (HOOD_SLOPE_D * distance) + HOOD_INTERCEPT;//Old Equation: HOOD_SLOPE * distance + HOOD_INTERCEPT;
         return Math.max(-15, Math.min(120, angle));
     }
 
