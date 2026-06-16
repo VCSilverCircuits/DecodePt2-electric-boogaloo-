@@ -52,14 +52,13 @@ public class FarAutoBlue extends OpMode {
 
     @Override
     public void init() {
-
         follower = AutoConstants.createFollower(hardwareMap);
         follower.setMaxPower(1);
         follower.setStartingPose(startPose);
 
 
 
-        turret = new OdoAimBlue(hardwareMap, follower, false);
+        turret = new OdoAimBlue(hardwareMap, follower, false, true);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
@@ -106,6 +105,11 @@ public class FarAutoBlue extends OpMode {
         telemetry.addData("current flywheel rpm", flywheel.getCurrentRPM());
         telemetry.addData("target flywheel rpm", flywheel.getTargetRPM());
         telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+        telemetry.addData("target position X", turret.getTargetPose().getX());
+        telemetry.addData("target position Y", turret.getTargetPose().getY());
+        telemetry.addData("Distance", turret.getDistanceToTarget());
+        telemetry.addData("RobotX:", follower.getPose().getX());
+        telemetry.addData("RobotY:", follower.getPose().getY());
         telemetry.update();
 
         // End condition
@@ -113,7 +117,7 @@ public class FarAutoBlue extends OpMode {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
         }
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose (follower.getPose().getX()+36, follower.getPose().getY()-7, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
         if (!endTriggered) {
             pathState = paths.autonomousPathUpdate(pathState, robotPose);

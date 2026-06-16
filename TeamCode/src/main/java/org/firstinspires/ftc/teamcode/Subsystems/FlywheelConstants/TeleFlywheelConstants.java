@@ -1,5 +1,10 @@
 package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetX;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetY;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.redTargetX;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.redTargetY;
+
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -28,10 +33,10 @@ public class TeleFlywheelConstants {
     private static final double HOOD_SLOPE_D2 = 0.0024;
     private static final double HOOD_INTERCEPT = 176.2621;
     private Pose targetPose; // current target, can change via D-pad
-    double REDTARGETX = 100;
-    double REDTARGETY = 125;
-    double BLUETARGETX = -3;
-    double BLUETARGETY = 140;
+    double REDTARGETX = redTargetX;
+    double REDTARGETY = redTargetY;
+    double BLUETARGETX = blueTargetX;
+    double BLUETARGETY = blueTargetY;
     Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY);
     Pose BLUETARGET = new Pose(BLUETARGETX, BLUETARGETY);
 

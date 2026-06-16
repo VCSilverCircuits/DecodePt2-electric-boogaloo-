@@ -9,13 +9,18 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.BlueTeleFlywheelConstants;
+import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.TeleFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "No Auto Blue Tele")
-public class BlueNoAutoTele extends OpMode {
+
+
+@TeleOp(name = "New Red Tele")
+public class NewRedTele extends OpMode {
+
     private BlueTeleFlywheelConstants flywheel;
     private Follower follower;
     private OdoAimBlue odoAim;
@@ -37,21 +42,25 @@ public class BlueNoAutoTele extends OpMode {
     private boolean isFiring = false;
     private boolean intakeLocked = false;
 
+    // ================= TURRET CONTROL =================
     private boolean turretTrackingEnabled = false;
     private boolean lastTurretButton = false;
     private boolean lastDpadUp = false;
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
     private boolean lastDpadDown = false;
+    private boolean lastRightBumper = false;
 
-    double dx, dy, robotX, robotY, distance;
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(144, 0, Math.toRadians(0)));
+        if (PoseStorage.currentPose != null) {
+            follower.setPose(new Pose(PoseStorage.currentPose.getX()+35, PoseStorage.currentPose.getY()-8, PoseStorage.currentPose.getHeading()));
+            follower.update();
+        }
+        odoAim = new OdoAimBlue(hardwareMap, follower, true);
+        odoAim.restoreFromStorage(PoseStorage.turretRadians);
 
-        odoAim = new OdoAimBlue(hardwareMap, follower, false);
-        //odoAim.manualOffsetRad = Math.toRadians(-20); //start with turret offset
         flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
 
         sensors = new ColorSensors();
@@ -61,15 +70,16 @@ public class BlueNoAutoTele extends OpMode {
         servo2 = hardwareMap.get(Servo.class, "backFlipper");
         servo3 = hardwareMap.get(Servo.class, "leftFlipper");
 
-        servo1.setPosition(PoseStorage.fingyDown);
-        servo2.setPosition(PoseStorage.fingyDown);
-        servo3.setPosition(PoseStorage.fingyDown);
+        servo1.setPosition(0.05);
+        servo2.setPosition(0.05);
+        servo3.setPosition(0.05);
+
         servos = new ServoGroup(
-            hardwareMap,
-            "frontFlipper",
-            "backFlipper",
-            "leftFlipper",
-            "stopper"
+                hardwareMap,
+                "frontFlipper",
+                "backFlipper",
+                "leftFlipper",
+                "stopper"
         );
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
@@ -82,24 +92,29 @@ public class BlueNoAutoTele extends OpMode {
         lift1.setPosition(0.9);
         lift2.setPosition(0.92);
     }
+
     @Override
-    public void start(){
-        follower.startTeleOpDrive();
-        flywheel.enable();}
+    public void start() {
+        follower.startTeleopDrive();
+        flywheel.enable();
+    }
 
     @Override
     public void loop() {
-        follower.update();
+
+        // ================= DRIVE =================
         follower.setTeleOpDrive(
-            -gamepad1.left_stick_y,
-            -gamepad1.left_stick_x,
-            -gamepad1.right_stick_x * 0.5,
-            true
+                -gamepad1.left_stick_y,
+                -gamepad1.left_stick_x,
+                -gamepad1.right_stick_x * 0.5,
+                true,0
         );
+
+        follower.update();
         flywheel.update(-gamepad1.left_stick_y * 50);
 
-        odoAim.update();
         odoAim.odoAim();
+        odoAim.update();
         servos.loop();
 
         // -------- TOGGLE TRACKING --------
@@ -107,23 +122,16 @@ public class BlueNoAutoTele extends OpMode {
 
         if (turretButtonPressed && !lastTurretButton) {
             turretTrackingEnabled = !turretTrackingEnabled;
-
-            if (turretTrackingEnabled) {
-                // Reset tracking zero to current idle position
-                odoAim.syncToCurrentPosition();
-            } else {
-                // When turning OFF, hold current position
-                odoAim.idle();
-            }
         }
         lastTurretButton = turretButtonPressed;
 
         // -------- OFFSET CONTROLS --------
+
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            odoAim.changeTargetX(true, false);
+            odoAim.changeTargetX(false, true);
         }
         if (gamepad1.dpad_right && !lastDpadRight) {
-            odoAim.changeTargetX(false, true);
+            odoAim.changeTargetX(true, false);
         }
         if (gamepad1.dpad_up && !lastDpadUp) {
             odoAim.changeTargetY(true, false);
@@ -135,6 +143,7 @@ public class BlueNoAutoTele extends OpMode {
         lastDpadLeft = gamepad1.dpad_left;
         lastDpadRight = gamepad1.dpad_right;
         lastDpadDown = gamepad1.dpad_down;
+
 
         // -------- AIM ONLY IF ENABLED --------
         if (turretTrackingEnabled) {
@@ -187,9 +196,9 @@ public class BlueNoAutoTele extends OpMode {
         }
 
         if (!isFiring) {
-            servo1.setPosition(gamepad1.b ? PoseStorage.fingyUp : PoseStorage.fingyDown);
-            servo2.setPosition(gamepad1.a ? PoseStorage.fingyUp : PoseStorage.fingyDown);
-            servo3.setPosition(gamepad1.x ? PoseStorage.fingyUp : PoseStorage.fingyDown);
+            servo1.setPosition(gamepad1.b ? 1 : 0);
+            servo2.setPosition(gamepad1.a ? 1 : 0);
+            servo3.setPosition(gamepad1.x ? 1 : 0);
         }
 
         // ================= LIFT TOGGLE =================
@@ -207,9 +216,24 @@ public class BlueNoAutoTele extends OpMode {
             lift1.setPosition(0.9);
             lift2.setPosition(0.92);
         }
+        boolean rightBumperPressed = gamepad1.right_bumper;
 
+        if (rightBumperPressed && !lastRightBumper) {
+            // Set tele target ONLY when button is pressed
+            odoAim.setTeleTarget(0, 144);
+        }
+
+        lastRightBumper = rightBumperPressed;
+
+        // ================= TELEMETRY =================
         telemetry.addData("Turret Tracking Enabled", turretTrackingEnabled);
         telemetry.addData("Turret Offset (deg)", odoAim.getOffsetDegrees());
+        telemetry.addData("position",follower.getPose());
+        telemetry.addData("stored Pose", PoseStorage.currentPose);
+        telemetry.addData("stored radians", PoseStorage.turretRadians);
+        telemetry.addData("turret Pose", odoAim.getTurretPosition());
+        telemetry.addData("target turret Pose", odoAim.getRelativeTargetHeading());
+        telemetry.addData("Distance", odoAim.getDistanceToTarget());
         telemetry.addData("target position X", odoAim.getTargetPose().getX());
         telemetry.addData("target position Y", odoAim.getTargetPose().getY());
         telemetry.addData("Distance", odoAim.getDistanceToTarget());

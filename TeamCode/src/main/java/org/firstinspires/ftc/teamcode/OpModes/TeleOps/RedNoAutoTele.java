@@ -11,13 +11,14 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.TeleFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp(name = "No Auto Red Tele")
 public class RedNoAutoTele extends OpMode {
     private TeleFlywheelConstants flywheel;
     private Follower follower;
-    private OdoAim odoAim;
+    private OdoAimBlue odoAim;
     private ServoGroup servos;
     private ColorSensors sensors;
 
@@ -45,8 +46,8 @@ public class RedNoAutoTele extends OpMode {
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(8.7, 9.3, Math.toRadians(180))); //actually: 10,8.5
-        odoAim = new OdoAim(hardwareMap, follower, true);
+        follower.setStartingPose(new Pose(44, 0, Math.toRadians(180))); //actually: 10,8.5
+        odoAim = new OdoAimBlue(hardwareMap, follower, true);
         flywheel = new TeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -76,6 +77,8 @@ public class RedNoAutoTele extends OpMode {
 
         lift1.setPosition(0.9);
         lift2.setPosition(0.92);
+
+        odoAim.setOpmodeToRed();
     }
     @Override
     public void start(){
@@ -211,6 +214,9 @@ public class RedNoAutoTele extends OpMode {
         telemetry.addData("Target Pose Object", odoAim.getTargetPose());
         telemetry.addData("target position X", odoAim.getTargetPose().getX());
         telemetry.addData("target position Y", odoAim.getTargetPose().getY());
+        telemetry.addData("Distance", odoAim.getDistanceToTarget());
+        telemetry.addData("RobotX:", follower.getPose().getX());
+        telemetry.addData("RobotY:", follower.getPose().getY());
         telemetry.update();
     }
 }

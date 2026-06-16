@@ -46,7 +46,7 @@ public class AltCloseBlue extends OpMode {
 
     // Poses
     private static final Pose startPose = new Pose(21.5, 123.7, Math.toRadians((141)));
-    private static final Pose firingPose = new Pose(55.4, 91.15, Math.toRadians((180)));
+    private static final Pose firingPose = new Pose(55.4, 91.15, Math.toRadians((141)));
 
     private static final Pose intakePose = new Pose(12.5, 67.1, Math.toRadians(180));
     private static final Pose initialRelease = new Pose(16.0, 76.9, Math.toRadians(180));
@@ -66,7 +66,7 @@ public class AltCloseBlue extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAimBlue(hardwareMap, follower, false);
+        turret = new OdoAimBlue(hardwareMap, follower, false, true);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -131,10 +131,12 @@ public class AltCloseBlue extends OpMode {
         telemetry.addData("current flywheel rpm", flywheel.getCurrentRPM());
         telemetry.addData("target flywheel rpm", flywheel.getTargetRPM());
         telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+        telemetry.addData("robotX,", robotPose.getX());
+        telemetry.addData("robotY",robotPose.getY());
         telemetry.update();
 
         // End condition
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose(follower.getPose().getX()+35, follower.getPose().getY()-14, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
 
         if (!endTriggered) {
@@ -252,7 +254,7 @@ public class AltCloseBlue extends OpMode {
                     new BezierLine(
                         //new Pose(46.449, 99.196),
                         firingPose,
-                            new Pose(55.4, 111, Math.toRadians((180))) // Off the line end position
+                            new Pose(55.4, 111, Math.toRadians((141))) // Off the line end position
                     )
                 ).setLinearHeadingInterpolation(
                         Math.toRadians(141),
@@ -338,7 +340,7 @@ public class AltCloseBlue extends OpMode {
                     break;
 
                 case 4:
-                    if (follow.atPose(intakePose,2,2) || pathTimer.getElapsedTimeSeconds() > 4 ) {
+                    if (follow.atPose(intakePose,2,2) || pathTimer.getElapsedTimeSeconds() > 2 ) {
                         follow.followPath(paths.intakeToFiring);
                         pathState = 5;
                         pathTimer.resetTimer();
@@ -387,7 +389,7 @@ public class AltCloseBlue extends OpMode {
                             follow.followPath(backOffPointToShoot);
                             pathState = 10;
                         }
-                        } else */if (pathTimer.getElapsedTimeSeconds() >= 3.4) {
+                        } else */if (pathTimer.getElapsedTimeSeconds() >= 1.3) {
                         follow.followPath(backOffPointToShoot);
                         pathState = 10;
                         pathTimer.resetTimer();

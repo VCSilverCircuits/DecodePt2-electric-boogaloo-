@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants;
 
 import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetX;
 import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.blueTargetY;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.redTargetX;
+import static org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue.redTargetY;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
@@ -47,8 +49,8 @@ public class BlueTeleFlywheelConstants {
     //private static final double HOOD_SLOPE = -0.550766;
     //private static final double HOOD_INTERCEPT = 109.12875;
     private Pose targetPose; // current target, can change via D-pad
-    double REDTARGETX = 152;
-    double REDTARGETY = 142;
+    double REDTARGETX = redTargetX;
+    double REDTARGETY = redTargetY;
     double BLUETARGETX = blueTargetX;
     double BLUETARGETY = blueTargetY;
     Pose REDTARGET = new Pose(REDTARGETX , REDTARGETY);

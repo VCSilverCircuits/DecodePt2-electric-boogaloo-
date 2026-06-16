@@ -402,6 +402,7 @@ public class CloseBlueAuto extends OpMode {
     private final Pose intake2 = new Pose(flipX(131), 65, Math.toRadians(flipHeading(-7)));
     private final Pose intake3Lineup = new Pose(flipX(94.75700934579439), 42, Math.toRadians(flipHeading(-10)));
     private final Pose intake3 = new Pose(flipX(130), 42, Math.toRadians(flipHeading(-3)));
+    private final Pose autoEnd = new Pose(flipX(94.75700934579439), 62, Math.toRadians(flipHeading(-10)));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3, servo4;
@@ -493,7 +494,7 @@ public class CloseBlueAuto extends OpMode {
 
             follower.followPath(paths.endPoseToLineup3);
         }
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose(follower.getPose().getX()+30, follower.getPose().getY()-17, follower.getHeading());
         PoseStorage.turretRadians = turret.getCurrentPosition();
 
         if (!endTriggered) {
@@ -519,7 +520,7 @@ public class CloseBlueAuto extends OpMode {
 
     public class Paths {
 
-        private PathChain startToEnd, endToTurnToIntake, turnToIntakeToIntake1, intake1ToReleaseBalls, releaseBallsToEndPose, endPoseToLineUp, lineupToIntake2, intake2ToEndPose, endPoseToLineup3, lineup3ToIntake3, intake3ToEndPose;
+        private PathChain startToEnd, endToTurnToIntake, turnToIntakeToIntake1, intake1ToReleaseBalls, releaseBallsToEndPose, endPoseToLineUp, lineupToIntake2, intake2ToEndPose, endPoseToLineup3, lineup3ToIntake3, intake3ToEndPose, endPoseToAutoEnd;
         private Follower follow;
 
         public Paths(Follower follower) {
@@ -552,6 +553,8 @@ public class CloseBlueAuto extends OpMode {
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)),Math.toRadians(flipHeading(0))).build();
             intake3ToEndPose = follower.pathBuilder().addPath(new BezierLine(intake3, endPose))
                     .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(37))).build();
+            endPoseToAutoEnd = follower.pathBuilder().addPath(new BezierLine(endPose, autoEnd))
+                    .setLinearHeadingInterpolation(Math.toRadians(flipHeading(0)), Math.toRadians(flipHeading(-7))).build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
@@ -828,10 +831,9 @@ public class CloseBlueAuto extends OpMode {
                     follower.setMaxPower(1);
                     setFlywheelRPM(3800);
                     intake.setPower(0);
-                    if (leaveTimer.getElapsedTimeSeconds() >= 28){
-                        follower.followPath(endPoseToLineup3);
+                    if (leaveTimer.getElapsedTimeSeconds() >= 27){
+                        follower.followPath(endPoseToAutoEnd);
                     }
-                    PoseStorage.currentPose = follower.getPose();
                     break;
             }
             return pathState;

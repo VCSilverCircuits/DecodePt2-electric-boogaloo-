@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.ColorSensorTests.ColorSensors;
 import org.firstinspires.ftc.teamcode.Subsystems.FlywheelConstants.AutoFlywheelConstants;
 import org.firstinspires.ftc.teamcode.Subsystems.Motif.ServoGroup;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
+import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
@@ -28,7 +29,7 @@ public class FarAutoRed extends OpMode {
     private Follower follower;
     private MecanumConstants mecanumConstants;
 
-    private OdoAim turret;
+    private OdoAimBlue turret;
     private ColorSensors sensors;
     private ServoGroup servos;
     private AutoFlywheelConstants flywheel;
@@ -48,9 +49,9 @@ public class FarAutoRed extends OpMode {
     private static final Pose firingPose = new Pose(96, 10.019, Math.toRadians(0));
 
 
-    private static final Pose intake1 = new Pose(128.897, 36, Math.toRadians(0));
-    private static final Pose intake2 = new Pose(134, 12.019, Math.toRadians(0));
-    private static final Pose endPose = new Pose(110, 10.019, Math.toRadians(0));
+    private static final Pose intake1 = new Pose(130.897, 36, Math.toRadians(0));
+    private static final Pose intake2 = new Pose(136, 12.019, Math.toRadians(0));
+    private static final Pose endPose = new Pose(112, 10.019, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -61,7 +62,7 @@ public class FarAutoRed extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAim(hardwareMap, follower, false);
+        turret = new OdoAimBlue(hardwareMap, follower, false, true);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();

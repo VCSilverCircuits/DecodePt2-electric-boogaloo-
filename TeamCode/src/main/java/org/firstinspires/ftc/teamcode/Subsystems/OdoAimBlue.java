@@ -33,8 +33,12 @@ public class OdoAimBlue {
     public static double OFFSET_STEP_RAD = Math.toRadians(3.0);
     public static double blueTargetX = 28;
     public static double blueTargetY = 125;
-    Pose REDTARGET = new Pose(150.0 , 130.0 );
+    public static double redTargetX = 161;
+    public static double redTargetY = 125;
+    Pose REDTARGET = new Pose(redTargetX, redTargetY );
     Pose BLUETARGET = new Pose(blueTargetX, blueTargetY);
+    Pose REDAUTOTARGET = new Pose(135, 140);
+    Pose BLUEAUTOTARGET = new Pose (10, 140);
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
 
@@ -47,9 +51,29 @@ public class OdoAimBlue {
     double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
 
     public OdoAimBlue(HardwareMap hardwareMap, Follower follower, boolean isRed) {
-
+        boolean isAuto = false;
         this.follower = follower;
-        this.targetPose = isRed ? REDTARGET : BLUETARGET;
+        if (!isAuto) {
+            this.targetPose = isRed ? REDTARGET : BLUETARGET;
+        } else {
+            this.targetPose = isRed ? REDAUTOTARGET : BLUEAUTOTARGET;
+        }
+
+        yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
+        yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        yawMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(isRed ? 4 : 0);
+        limelight.start();
+    }
+    public OdoAimBlue(HardwareMap hardwareMap, Follower follower, boolean isRed, boolean isAuto) {
+        this.follower = follower;
+        if (!isAuto) {
+            this.targetPose = isRed ? REDTARGET : BLUETARGET;
+        } else {
+            this.targetPose = isRed ? REDAUTOTARGET : BLUEAUTOTARGET;
+        }
 
         yawMotor = hardwareMap.get(DcMotorEx.class, "turretRotation");
         yawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -213,10 +237,22 @@ public class OdoAimBlue {
     public double getDistanceToTarget() {
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
-
-        double dx = BLUETARGET.getX() - robotX;
-        double dy = BLUETARGET.getY() - robotY;
+        double dx, dy;
+        if (!isRed) {
+            dx = BLUETARGET.getX() - robotX;
+            dy = BLUETARGET.getY() - robotY;
+        } else {
+            dx = REDTARGET.getX() - robotX;
+            dy = REDTARGET.getY() - robotY;
+        }
         double distance = Math.hypot(dx, dy);
         return distance;
     }
+    public void setOpmodeToRed() {
+        isRed = true;
+    }
+    public void setTargetPose(Pose newTargetPose) {
+        targetPose = newTargetPose;
+    }
+
 }

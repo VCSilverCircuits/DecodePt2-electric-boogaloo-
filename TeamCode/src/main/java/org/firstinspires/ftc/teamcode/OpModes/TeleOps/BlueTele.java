@@ -16,6 +16,8 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+
+
 @TeleOp(name = "Blue Tele")
 public class BlueTele extends OpMode {
 
@@ -51,10 +53,9 @@ public class BlueTele extends OpMode {
 
     @Override
     public void init() {
-
         follower = Constants.createFollower(hardwareMap);
         if (PoseStorage.currentPose != null) {
-            follower.setPose(PoseStorage.currentPose);
+            follower.setPose(new Pose(PoseStorage.currentPose.getX(), PoseStorage.currentPose.getY(), PoseStorage.currentPose.getHeading()));
             follower.update();
         }
         odoAim = new OdoAimBlue(hardwareMap, follower, false);
@@ -232,6 +233,12 @@ public class BlueTele extends OpMode {
         telemetry.addData("stored radians", PoseStorage.turretRadians);
         telemetry.addData("turret Pose", odoAim.getTurretPosition());
         telemetry.addData("target turret Pose", odoAim.getRelativeTargetHeading());
+        telemetry.addData("Distance", odoAim.getDistanceToTarget());
+        telemetry.addData("target position X", odoAim.getTargetPose().getX());
+        telemetry.addData("target position Y", odoAim.getTargetPose().getY());
+        telemetry.addData("Distance", odoAim.getDistanceToTarget());
+        telemetry.addData("RobotX:", follower.getPose().getX());
+        telemetry.addData("RobotY:", follower.getPose().getY());
         telemetry.update();
     }
 }
