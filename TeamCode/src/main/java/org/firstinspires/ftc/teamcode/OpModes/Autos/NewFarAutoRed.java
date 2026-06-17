@@ -8,7 +8,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -19,9 +18,9 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
-@Disabled
-@Autonomous(name = "Old Far Red")
-public class FarAutoRed extends OpMode {
+
+@Autonomous(name = "Far Red")
+public class NewFarAutoRed extends OpMode {
 
     // Hardware
     private DcMotorEx intake;
@@ -110,7 +109,7 @@ public class FarAutoRed extends OpMode {
         telemetry.update();
 
         // End condition
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 25.5 && !servos.isRunning()) {
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28 && !servos.isRunning()) {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
             turret.idle();
@@ -141,36 +140,36 @@ public class FarAutoRed extends OpMode {
             this.follow = follower;
 
             startToFiring = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, firingPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), firingPose.getHeading())
-                .build();
+                    .addPath(new BezierLine(startPose, firingPose))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), firingPose.getHeading())
+                    .build();
 
             firingToIntake1 = follower.pathBuilder()
-                .addPath(new BezierCurve(firingPose,
-                    new Pose(57.95, 38.64),
-                    intake1))
-                .setLinearHeadingInterpolation(firingPose.getHeading(), intake1.getHeading())
-                .build();
+                    .addPath(new BezierCurve(firingPose,
+                            new Pose(57.95, 38.64),
+                            intake1))
+                    .setLinearHeadingInterpolation(firingPose.getHeading(), intake1.getHeading())
+                    .build();
 
             intake1ToFiring = follower.pathBuilder()
-                .addPath(new BezierLine(intake1, firingPose))
-                .setLinearHeadingInterpolation(intake1.getHeading(), firingPose.getHeading())
-                .build();
+                    .addPath(new BezierLine(intake1, firingPose))
+                    .setLinearHeadingInterpolation(intake1.getHeading(), firingPose.getHeading())
+                    .build();
 
             firingToIntake2 = follower.pathBuilder()
-                .addPath(new BezierLine(firingPose, intake2))
-                .setLinearHeadingInterpolation(firingPose.getHeading(), intake2.getHeading())
-                .build();
+                    .addPath(new BezierLine(firingPose, intake2))
+                    .setLinearHeadingInterpolation(firingPose.getHeading(), intake2.getHeading())
+                    .build();
 
             intake2ToFiring = follower.pathBuilder()
-                .addPath(new BezierLine(intake2, firingPose))
-                .setLinearHeadingInterpolation(intake2.getHeading(), firingPose.getHeading())
-                .build();
+                    .addPath(new BezierLine(intake2, firingPose))
+                    .setLinearHeadingInterpolation(intake2.getHeading(), firingPose.getHeading())
+                    .build();
 
             firingToEnd = follower.pathBuilder()
-                .addPath(new BezierLine(firingPose, endPose))
-                .setLinearHeadingInterpolation(firingPose.getHeading(), endPose.getHeading())
-                .build();
+                    .addPath(new BezierLine(firingPose, endPose))
+                    .setLinearHeadingInterpolation(firingPose.getHeading(), endPose.getHeading())
+                    .build();
         }
 
         public int autonomousPathUpdate(int pathState, Pose robotPose) {
@@ -192,8 +191,8 @@ public class FarAutoRed extends OpMode {
                     intake.setPower(1);
 
                     if (!servos.isRunning()
-                        && follow.atPose(firingPose, 2, 2)
-                        && flywheel.atSpeed(200)) {
+                            && follow.atPose(firingPose, 2, 2)
+                            && flywheel.atSpeed(200)) {
 
                         servos.StartNonSort();
                         timesShot++;
