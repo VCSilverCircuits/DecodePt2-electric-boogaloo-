@@ -89,8 +89,6 @@ public class RedTele extends OpMode {
         lift1.setPosition(0.9);
         lift2.setPosition(0.92);
 
-        odoAim.REDTARGET_TELE.plus(new Pose(12,0)); //so the other tele works with the wrong coordinates so wee will just fix it for this opmode
-        //odoAim.
     }
 
     @Override

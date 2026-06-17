@@ -304,9 +304,6 @@ public class CloseRedAuto extends OpMode {
 
                 case 7:
                     if (follow.atPose(intake1, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 3) {
-                            intake.setPower(1);
-                        }
                         if (pathTimer.getElapsedTimeSeconds() > 1) {
                             follow.followPath(intake1ToReleaseBalls);
                             follower.setMaxPower(0.7);
@@ -314,21 +311,16 @@ public class CloseRedAuto extends OpMode {
                             pathState = 8;
                         }
                     }
-                    if (pathTimer.getElapsedTimeSeconds() > 2) {
-                        if (pathTimer.getElapsedTimeSeconds() > 3) {
-                            intake.setPower(1);
-                        }
-                        if (pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (pathTimer.getElapsedTimeSeconds() > 3) {
                             follow.followPath(intake1ToReleaseBalls);
                             follower.setMaxPower(0.7);
                             pathTimer.resetTimer();
                             pathState = 8;
-                        }
                     }
                     break;
 
                 case 8:
-                    if (follow.atPose(releaseBalls, 2, 2)) {
+                    /*if (follow.atPose(releaseBalls, 2, 2)) {
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(1);
                             follower.setMaxPower(1);
@@ -339,13 +331,14 @@ public class CloseRedAuto extends OpMode {
                         if (pathTimer.getElapsedTimeSeconds() > 2) {
                             intake.setPower(-1);
                         }
-                    }
+                    }*/
                     if (pathTimer.getElapsedTimeSeconds() > 2) {
-                        intake.setPower(1);
                         follower.setMaxPower(1);
                         follow.followPath(releaseBallsToEndPose);
                         pathTimer.resetTimer();
                         pathState = 9;
+                    } else if (pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        intake.setPower(1);
                     }
                     break;
 
@@ -362,11 +355,11 @@ public class CloseRedAuto extends OpMode {
                     pathState = 11;
                     break;
                 case 11:
-                    comingBack = true;
+                    //comingBack = true;
                     if (follow.atPose(intake2Lineup, 2, 2)) {
-                        if (comingBack = true) {
+                        //if (comingBack = true) {
                             endPoseX = endPoseX - 3;
-                        }
+                        //}
                         if (pathTimer.getElapsedTimeSeconds() > 1.75) {
                             pathState = 12;
                             pathTimer.resetTimer();
@@ -388,22 +381,10 @@ public class CloseRedAuto extends OpMode {
                     break;
 
                 case 13: // Intake 2
-                    follower.setMaxPower(1);
-                    if (follow.atPose(intake2, 2, 2)) {
-                        if (pathTimer.getElapsedTimeSeconds() > 2) {
-                            intake.setPower(1);
-                            pathTimer.resetTimer();
-                        }
+                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2.5) {
                         if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                             pathTimer.resetTimer();
                             pathState = 14;
-                        }
-                    }
-                    if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                        pathState = 14;
-                        if (pathTimer.getElapsedTimeSeconds() > 3) {
-                            intake.setPower(1);
-                            pathTimer.resetTimer();
                         }
                     }
                     follower.setMaxPower(1);
@@ -411,11 +392,14 @@ public class CloseRedAuto extends OpMode {
                     endPoseY = endPoseY + 2;
                     break;
                 case 14:
+                    if (pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        intake.setPower(1);
+                    }
                     follow.followPath(intake2ToEndPose);
                     pathState = 15;
                    break;
                 case 15:
-                    if (follow.atPose(endPose,2,2) ){
+                    if (follow.atPose(endPose,2,2) || pathTimer.getElapsedTimeSeconds() > 2.25){
                         endPoseX = endPoseX+3;
                         pathTimer.resetTimer();
                         pathState = 2;
@@ -427,7 +411,7 @@ public class CloseRedAuto extends OpMode {
                     pathState = 17;
                     break;
                 case 17:
-                    if (follow.atPose(intake3Lineup,2,2)){
+                    if (follow.atPose(intake3Lineup,2,2) || pathTimer.getElapsedTimeSeconds() > 2.25){
                         follower.setMaxPower(0.75);
                         intake.setPower(-1);
                         pathTimer.resetTimer();
@@ -442,28 +426,16 @@ public class CloseRedAuto extends OpMode {
                     break;
                 case 19:
                     follower.setMaxPower(1);
-                    if (follow.atPose(intake3,2,2)){
-                        if (pathTimer.getElapsedTimeSeconds() > 2){
-                            intake.setPower(1);
-                            pathTimer.resetTimer();
-                        }
-                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                    if (follow.atPose(intake3,2,2) && pathTimer.getElapsedTimeSeconds() > 1.5){
                             pathTimer.resetTimer();
                             pathState = 20;
-                        }
-                    }
-                    if (pathTimer.getElapsedTimeSeconds() > 2.5){
+                    } else if (pathTimer.getElapsedTimeSeconds() > 2.5){
                         pathState = 20;
-                        if (pathTimer.getElapsedTimeSeconds() > 3){
-                            intake.setPower(1);
-                            pathTimer.resetTimer();
-                        }
+                        pathTimer.resetTimer();
                     }
                     break;
                 case 20:
                     follow.followPath(intake3ToEndPose);
-                    follower.setMaxPower(1);
-                    pathTimer.resetTimer();
                     pathState = 21;
                     break;
                 case 21:
@@ -471,15 +443,17 @@ public class CloseRedAuto extends OpMode {
                         pathTimer.resetTimer();
                         intake.setPower(0);
                         pathState = 2;
+                    } else if (pathTimer.getElapsedTimeSeconds() > 0.5) {
+                        intake.setPower(1);
                     }
                     break;
                 case 22:
                     follower.setMaxPower(1);
                     setFlywheelRPM(0);
                     intake.setPower(0);
-                    if (leaveTimer.getElapsedTimeSeconds() >= 28){
+                    /*if (leaveTimer.getElapsedTimeSeconds() >= 28){
                         follower.followPath(endPoseToLineup3);
-                    }
+                    }*/
                     break;
             }
             return pathState;
