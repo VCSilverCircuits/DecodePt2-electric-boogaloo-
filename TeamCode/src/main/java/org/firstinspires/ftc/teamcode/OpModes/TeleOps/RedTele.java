@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.OpModes.TeleOps;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,7 +15,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
+@Disabled
 @TeleOp(name = "Red Tele")
 public class RedTele extends OpMode {
 

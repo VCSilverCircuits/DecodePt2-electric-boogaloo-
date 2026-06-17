@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 
 
-@TeleOp(name = "New Red Tele")
+@TeleOp(name = "Red Tele")
 public class NewRedTele extends OpMode {
 
     private BlueTeleFlywheelConstants flywheel;
@@ -55,13 +55,13 @@ public class NewRedTele extends OpMode {
     public void init() {
         follower = Constants.createFollower(hardwareMap);
         if (PoseStorage.currentPose != null) {
-            follower.setPose(new Pose(PoseStorage.currentPose.getX()+35, PoseStorage.currentPose.getY()-8, PoseStorage.currentPose.getHeading()));
+            follower.setPose(new Pose(PoseStorage.currentPose.getX()+35, PoseStorage.currentPose.getY()-7, PoseStorage.currentPose.getHeading()));
             follower.update();
         }
         odoAim = new OdoAimBlue(hardwareMap, follower, true);
         odoAim.restoreFromStorage(PoseStorage.turretRadians);
 
-        flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, false);
+        flywheel = new BlueTeleFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
         sensors.init(hardwareMap);
@@ -218,10 +218,10 @@ public class NewRedTele extends OpMode {
         }
         boolean rightBumperPressed = gamepad1.right_bumper;
 
-        if (rightBumperPressed && !lastRightBumper) {
+        //if (rightBumperPressed && !lastRightBumper) {
             // Set tele target ONLY when button is pressed
-            odoAim.setTeleTarget(0, 144);
-        }
+            //odoAim.setTeleTarget(0, 144);
+        //}
 
         lastRightBumper = rightBumperPressed;
 
@@ -242,3 +242,4 @@ public class NewRedTele extends OpMode {
         telemetry.update();
     }
 }
+

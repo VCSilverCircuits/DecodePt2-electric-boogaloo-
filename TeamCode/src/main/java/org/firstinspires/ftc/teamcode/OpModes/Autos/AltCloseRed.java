@@ -45,7 +45,7 @@ public class AltCloseRed extends OpMode {
 
     // Poses
     private static final Pose startPose = new Pose(121.6, 121.6, Math.toRadians(39));
-    private static final Pose firingPose = new Pose(88.598, 88.6, Math.toRadians(0));
+    private static final Pose firingPose = new Pose(88.598, 88.6, Math.toRadians(39));
 
     private static final Pose intakePose = new Pose(131.6, 65.1, Math.toRadians(0));
     private static final Pose initialRelease = new Pose(128.0, 76.9, Math.toRadians(0));
@@ -128,10 +128,12 @@ public class AltCloseRed extends OpMode {
         telemetry.addData("current flywheel rpm", flywheel.getCurrentRPM());
         telemetry.addData("target flywheel rpm", flywheel.getTargetRPM());
         telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+        telemetry.addData("robotX,", robotPose.getX());
+        telemetry.addData("robotY",robotPose.getY());
         telemetry.update();
 
         // End condition
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose(follower.getPose().getX()-23, follower.getPose().getY()-7, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
 
         if (!endTriggered) {
@@ -245,7 +247,7 @@ public class AltCloseRed extends OpMode {
                 new BezierLine(
                     //new Pose(97.551, 99.196),
                     firingPose,
-                        new Pose(88.6, 111, Math.toRadians(0))
+                        new Pose(88.6, 111, Math.toRadians(39))
                 )
             ).setLinearHeadingInterpolation(
                 Math.toRadians(39),

@@ -38,16 +38,16 @@ public class CloseRedAuto extends OpMode {
 
     double endPoseY = 93.9813;
     double endPoseX = 95.1028;
-    private final Pose startPose = new Pose(122.0187, 123.8131, Math.toRadians(37));
+    private final Pose startPose = new Pose(123, 122.8131, Math.toRadians(37));
     private final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(37));
     private final Pose turnToIntake = new Pose(90.39252336448597, 89.27101962616824, Math.toRadians(0));
-    private final Pose intake1 = new Pose(124, 96, Math.toRadians(0));
-    private final Pose releaseBalls = new Pose(130, 80, Math.toRadians(0));
+    private final Pose intake1 = new Pose(125, 96, Math.toRadians(0));
+    private final Pose releaseBalls = new Pose(130, 78, Math.toRadians(0));
     private final Pose intake2Lineup = new Pose(95.15887850467287,64,Math.toRadians(-3));
     private final Pose intake2 = new Pose(130,62, Math.toRadians(-7));
     private final Pose intake3Lineup = new Pose(94.75700934579439,42,Math.toRadians(0));
     private final Pose intake3 = new Pose(132,42, Math.toRadians(-3));
-    private final Pose finalPose = new Pose(80,110, Math.toRadians(0));
+    private final Pose finalPose = new Pose(95,110, Math.toRadians(37));
     private DcMotorEx leftFlywheel, rightFlywheel;
     private DualMotor flywheel;
     private Servo servo1, servo2, servo3, servo4;
@@ -58,7 +58,7 @@ public class CloseRedAuto extends OpMode {
 
     boolean comingBack = false;
 
-    public static final double MAX_FLYWHEEL_RPM = 6000;
+    public static final double MAX_FLYWHEEL_RPM = 6550;
 
     private int pathState = 0;
     private Paths paths;
@@ -105,6 +105,7 @@ public class CloseRedAuto extends OpMode {
         servo1.setPosition(0.05);
         servo2.setPosition(0.05);
         servo3.setPosition(0.05);
+        servo4.setPosition(0.05);
         // Intake
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -177,7 +178,7 @@ public class CloseRedAuto extends OpMode {
             turnToIntakeToIntake1 = follower.pathBuilder().addPath(new BezierLine(turnToIntake, intake1))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
 
-            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(115.107476635514, 80.23831775700934), releaseBalls))
+            intake1ToReleaseBalls = follower.pathBuilder().addPath(new BezierCurve(intake1, new Pose(100.107476635514, 80.23831775700934), releaseBalls))
                 .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0)).build();
 
             releaseBallsToEndPose = follower.pathBuilder().addPath(new BezierLine(releaseBalls, endPose))
@@ -205,7 +206,7 @@ public class CloseRedAuto extends OpMode {
                     leaveTimer.resetTimer();
                     follow.followPath(startToEnd);
                     follower.setMaxPower(1);
-                    setFlywheelRPM(2750);
+                    setFlywheelRPM(2600);
                     intake.setPower(-1);
                     pathTimer.resetTimer();
                     pathState = 1;
@@ -220,7 +221,7 @@ public class CloseRedAuto extends OpMode {
 
                 case 2: // Shoot
                     intake.setPower(1);
-                    servo4.setPosition(1);
+                    servo4.setPosition(0.25);
                     if (leaveTimer.getElapsedTimeSeconds() >= 29) {
                         endPoseX = endPoseX - 5;
                     }
@@ -474,7 +475,7 @@ public class CloseRedAuto extends OpMode {
                     break;
                 case 22:
                     follower.setMaxPower(1);
-                    setFlywheelRPM(3800);
+                    setFlywheelRPM(0);
                     intake.setPower(0);
                     if (leaveTimer.getElapsedTimeSeconds() >= 28){
                         follower.followPath(endPoseToLineup3);

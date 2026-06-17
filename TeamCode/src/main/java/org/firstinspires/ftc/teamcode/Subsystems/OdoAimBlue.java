@@ -35,9 +35,9 @@ public class OdoAimBlue {
     public static double blueTargetY = 125;
     public static double redTargetX = 161;
     public static double redTargetY = 125;
-    Pose REDTARGET = new Pose(redTargetX, redTargetY );
+    Pose REDTARGET = new Pose(redTargetX, redTargetY);
     Pose BLUETARGET = new Pose(blueTargetX, blueTargetY);
-    Pose REDAUTOTARGET = new Pose(135, 140);
+    Pose REDAUTOTARGET = new Pose(157, 135);
     Pose BLUEAUTOTARGET = new Pose (10, 140);
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
@@ -46,9 +46,9 @@ public class OdoAimBlue {
         new PIDFController(2.4, 0.0, 0.008, 0.2);
 
     private double relativeTargetHeading;
-    private boolean isRed;
-    double targetX = isRed ? REDTARGET.getX() : BLUETARGET.getX();
-    double targetY = isRed ? REDTARGET.getY() : BLUETARGET.getY();
+    private boolean pubIsRed;
+    double targetX = pubIsRed ? REDTARGET.getX() : BLUETARGET.getX();
+    double targetY = pubIsRed ? REDTARGET.getY() : BLUETARGET.getY();
 
     public OdoAimBlue(HardwareMap hardwareMap, Follower follower, boolean isRed) {
         boolean isAuto = false;
@@ -66,6 +66,7 @@ public class OdoAimBlue {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 4 : 0);
         limelight.start();
+        pubIsRed = isRed;
     }
     public OdoAimBlue(HardwareMap hardwareMap, Follower follower, boolean isRed, boolean isAuto) {
         this.follower = follower;
@@ -82,6 +83,7 @@ public class OdoAimBlue {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(isRed ? 4 : 0);
         limelight.start();
+        pubIsRed = isRed;
     }
 
     // ================= UPDATE TARGET ANGLE =================
@@ -238,7 +240,7 @@ public class OdoAimBlue {
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
         double dx, dy;
-        if (!isRed) {
+        if (!pubIsRed) {
             dx = BLUETARGET.getX() - robotX;
             dy = BLUETARGET.getY() - robotY;
         } else {
@@ -249,7 +251,7 @@ public class OdoAimBlue {
         return distance;
     }
     public void setOpmodeToRed() {
-        isRed = true;
+        pubIsRed = true;
     }
     public void setTargetPose(Pose newTargetPose) {
         targetPose = newTargetPose;

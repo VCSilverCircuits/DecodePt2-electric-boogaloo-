@@ -579,7 +579,7 @@ public class CloseBlueAuto extends OpMode {
 
                 case 2: // Shoot
                     intake.setPower(1);
-                    servo4.setPosition(1);
+                    servo4.setPosition(0.25);
                     if (leaveTimer.getElapsedTimeSeconds() >= 29) {
                         endPoseX = endPoseX - 5;
                     }

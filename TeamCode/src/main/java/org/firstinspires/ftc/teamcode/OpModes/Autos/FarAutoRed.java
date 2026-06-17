@@ -49,9 +49,9 @@ public class FarAutoRed extends OpMode {
     private static final Pose firingPose = new Pose(96, 10.019, Math.toRadians(0));
 
 
-    private static final Pose intake1 = new Pose(130.897, 36, Math.toRadians(0));
-    private static final Pose intake2 = new Pose(136, 12.019, Math.toRadians(0));
-    private static final Pose endPose = new Pose(112, 10.019, Math.toRadians(0));
+    private static final Pose intake1 = new Pose(140, 36, Math.toRadians(0));
+    private static final Pose intake2 = new Pose(140, 12.019, Math.toRadians(0));
+    private static final Pose endPose = new Pose(119, 10.019, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -62,7 +62,7 @@ public class FarAutoRed extends OpMode {
 
         mecanumConstants = new MecanumConstants();
 
-        turret = new OdoAimBlue(hardwareMap, follower, false, true);
+        turret = new OdoAimBlue(hardwareMap, follower, true, true);
         flywheel = new AutoFlywheelConstants(hardwareMap, follower, true);
 
         sensors = new ColorSensors();
@@ -109,12 +109,12 @@ public class FarAutoRed extends OpMode {
         telemetry.update();
 
         // End condition
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 25.5 && !servos.isRunning()) {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
             turret.idle();
         }
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose(follower.getPose().getX()-30, follower.getPose().getY()-2, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
 
         if (!endTriggered) {

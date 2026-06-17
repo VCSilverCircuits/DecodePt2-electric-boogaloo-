@@ -218,10 +218,10 @@ public class BlueTele extends OpMode {
         }
         boolean rightBumperPressed = gamepad1.right_bumper;
 
-        if (rightBumperPressed && !lastRightBumper) {
+        //if (rightBumperPressed && !lastRightBumper) {
             // Set tele target ONLY when button is pressed
-            odoAim.setTeleTarget(0, 144);
-        }
+            //odoAim.setTeleTarget(0, 144);
+        //}
 
         lastRightBumper = rightBumperPressed;
 
