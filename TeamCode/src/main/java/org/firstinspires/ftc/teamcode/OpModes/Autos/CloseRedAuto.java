@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -17,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.AprilTagControllers.AprilTagTur
 import org.firstinspires.ftc.teamcode.Subsystems.DualMotor;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
-
+@Disabled
 @Autonomous(name = "Red Auto Shoot")
 public class CloseRedAuto extends OpMode {
     PoseStorage poseStorage;
@@ -138,7 +139,7 @@ public class CloseRedAuto extends OpMode {
             follower.followPath(paths.endToFinal);
 
         }
-        PoseStorage.currentPose = follower.getPose();
+        PoseStorage.currentPose = new Pose(follower.getPose().getX()-20.5, follower.getPose().getY()-7.6);
         PoseStorage.turretRadians = turret.getCurrentPosition();
         if (!endTriggered) {
             pathState = paths.autonomousPathUpdate(pathState, robotPose);
@@ -381,11 +382,9 @@ public class CloseRedAuto extends OpMode {
                     break;
 
                 case 13: // Intake 2
-                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2.5) {
-                        if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                    if ((follow.atPose(intake2, 2, 2) && pathTimer.getElapsedTimeSeconds() > 1.5)|| pathTimer.getElapsedTimeSeconds() > 2.5) {
                             pathTimer.resetTimer();
                             pathState = 14;
-                        }
                     }
                     follower.setMaxPower(1);
                     endPoseX = endPoseX + 2;
