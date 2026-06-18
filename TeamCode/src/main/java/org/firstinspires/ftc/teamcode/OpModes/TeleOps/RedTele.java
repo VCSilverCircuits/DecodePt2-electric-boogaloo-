@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @Disabled
-@TeleOp(name = "Red Tele")
+@TeleOp(name = "Old Red Tele")
 public class RedTele extends OpMode {
 
     private TeleFlywheelConstants flywheel;

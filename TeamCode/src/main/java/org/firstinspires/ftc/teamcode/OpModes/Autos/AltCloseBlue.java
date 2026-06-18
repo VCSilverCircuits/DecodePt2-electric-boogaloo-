@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Alt Close Blue")
+@Autonomous(name = "Alt Close Blue", preselectTeleOp = "Blue Tele")
 public class AltCloseBlue extends OpMode {
 
     // Hardware

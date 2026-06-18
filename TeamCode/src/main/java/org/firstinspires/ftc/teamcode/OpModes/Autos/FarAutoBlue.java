@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAimBlue;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Far Blue")
+@Autonomous(name = "Far Blue", preselectTeleOp = "Blue Tele")
 public class FarAutoBlue extends OpMode {
 
     // Hardware

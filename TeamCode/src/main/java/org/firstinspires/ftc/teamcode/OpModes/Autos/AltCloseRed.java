@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.OdoAim;
 import org.firstinspires.ftc.teamcode.Subsystems.PoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.AutoConstants;
 
-@Autonomous(name = "Alt Close Red")
+@Autonomous(name = "Alt Close Red", preselectTeleOp = "Red Tele")
 public class AltCloseRed extends OpMode {
 
     // Hardware
