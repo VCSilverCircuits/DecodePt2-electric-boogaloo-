@@ -109,6 +109,9 @@ public class NewFarAutoRed extends OpMode {
         telemetry.update();
 
         // End condition
+        if (!endTriggered) {
+            pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        }
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28 && !servos.isRunning()) {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
@@ -116,10 +119,6 @@ public class NewFarAutoRed extends OpMode {
         }
         PoseStorage.currentPose = new Pose(follower.getPose().getX()-30, follower.getPose().getY()-2, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
-
-        if (!endTriggered) {
-            pathState = paths.autonomousPathUpdate(pathState, robotPose);
-        }
     }
 
     public class Paths {
@@ -237,7 +236,7 @@ public class NewFarAutoRed extends OpMode {
                 case 4:
                     intake.setPower(-1);
 
-                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (follow.atPose(intake1, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2) {
 
                         if (!intakeDelayStarted) {
                             pathTimer.resetTimer();
@@ -268,7 +267,7 @@ public class NewFarAutoRed extends OpMode {
 
                     intake.setPower(-1);
 
-                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 3) {
+                    if (follow.atPose(intake2, 2, 2) || pathTimer.getElapsedTimeSeconds() > 2) {
 
                         if (!intakeDelayStarted) {
                             pathTimer.resetTimer();

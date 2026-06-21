@@ -110,6 +110,9 @@ public class FarAutoRed extends OpMode {
         telemetry.update();
 
         // End condition
+        if (!endTriggered) {
+            pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        }
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 25.5 && !servos.isRunning()) {
             endTriggered = true;
             follower.followPath(paths.firingToEnd);
@@ -117,10 +120,6 @@ public class FarAutoRed extends OpMode {
         }
         PoseStorage.currentPose = new Pose(follower.getPose().getX()-30, follower.getPose().getY()-2, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
-
-        if (!endTriggered) {
-            pathState = paths.autonomousPathUpdate(pathState, robotPose);
-        }
     }
 
     public class Paths {

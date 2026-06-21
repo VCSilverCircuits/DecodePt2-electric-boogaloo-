@@ -124,6 +124,9 @@ public class BlueTeleFlywheelConstants {
     // ================= RPM REGRESSION =================
     public double getRegressionRPM(double distance) {
         double rpm = (RPM_SLOPE_D2 * (Math.pow(distance, 2))) + (RPM_SLOPE_D * distance) + RPM_INTERCEPT;
+        if (distance > 130) {
+            rpm += 125;
+        }
         return Math.max(2800, Math.min(10000, rpm));
     }
 

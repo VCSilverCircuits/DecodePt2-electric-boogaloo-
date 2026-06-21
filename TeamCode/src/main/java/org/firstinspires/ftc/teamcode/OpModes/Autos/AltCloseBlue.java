@@ -107,6 +107,10 @@ public class AltCloseBlue extends OpMode {
             hasStartedFlywheel = true;
         }
 
+        if (!endTriggered) {
+            pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        }
+
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
             follower.followPath(paths.endPath);
@@ -138,10 +142,6 @@ public class AltCloseBlue extends OpMode {
         // End condition
         PoseStorage.currentPose = new Pose(follower.getPose().getX()+35, follower.getPose().getY()-14, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
-
-        if (!endTriggered) {
-            pathState = paths.autonomousPathUpdate(pathState, robotPose);
-        }
     }
 
     public class Paths {
@@ -428,7 +428,7 @@ public class AltCloseBlue extends OpMode {
                     break;
                 case 14:
                     //backspin once we've backed away
-                    if (pathTimer.getElapsedTimeSeconds() > 2.0) {
+                    if (pathTimer.getElapsedTimeSeconds() > 0.6) {
                         intake.setPower(1);
                     }
                     if (follow.atPose(firingPose,2,2)){

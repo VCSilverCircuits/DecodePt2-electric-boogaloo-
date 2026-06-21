@@ -37,8 +37,8 @@ public class OdoAimBlue {
     public static double redTargetY = 125;
     Pose REDTARGET = new Pose(redTargetX, redTargetY);
     Pose BLUETARGET = new Pose(blueTargetX, blueTargetY);
-    Pose REDAUTOTARGET = new Pose(157, 135);
-    Pose BLUEAUTOTARGET = new Pose (10, 140);
+    Pose REDAUTOTARGET = new Pose(153, 135);
+    Pose BLUEAUTOTARGET = new Pose (4, 140);
     private final PIDFController limelightPIDF =
         new PIDFController(0.06, 0.0, 0.008, 0.0);
 

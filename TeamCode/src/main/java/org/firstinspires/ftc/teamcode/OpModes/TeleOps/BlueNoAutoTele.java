@@ -119,10 +119,10 @@ public class BlueNoAutoTele extends OpMode {
         lastTurretButton = turretButtonPressed;
 
         // -------- OFFSET CONTROLS --------
-        if (gamepad1.dpad_left && !lastDpadLeft) {
+        if (gamepad1.dpad_right && !lastDpadRight) {
             odoAim.changeTargetX(true, false);
         }
-        if (gamepad1.dpad_right && !lastDpadRight) {
+        if (gamepad1.dpad_left && !lastDpadLeft) {
             odoAim.changeTargetX(false, true);
         }
         if (gamepad1.dpad_up && !lastDpadUp) {
@@ -193,7 +193,7 @@ public class BlueNoAutoTele extends OpMode {
         }
 
         // ================= LIFT TOGGLE =================
-        boolean liftPressed = gamepad2.dpad_up;
+        boolean liftPressed = gamepad1.back;
 
         if (liftPressed && !lastLiftToggle) {
             liftToggle = !liftToggle;

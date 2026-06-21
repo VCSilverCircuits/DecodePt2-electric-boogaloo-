@@ -103,7 +103,9 @@ public class AltCloseRed extends OpMode {
             flywheel.setConstantHood(70);
             hasStartedFlywheel = true;
         }
-
+        if (!endTriggered) {
+            pathState = paths.autonomousPathUpdate(pathState, robotPose);
+        }
         if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
             endTriggered = true;
             follower.followPath(paths.endPath);
@@ -135,10 +137,6 @@ public class AltCloseRed extends OpMode {
         // End condition
         PoseStorage.currentPose = new Pose(follower.getPose().getX()-23, follower.getPose().getY()-7, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
-
-        if (!endTriggered) {
-            pathState = paths.autonomousPathUpdate(pathState, robotPose);
-        }
     }
 
     public class Paths {

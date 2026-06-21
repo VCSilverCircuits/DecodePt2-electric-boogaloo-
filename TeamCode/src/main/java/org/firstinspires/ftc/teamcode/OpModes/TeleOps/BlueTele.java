@@ -202,7 +202,7 @@ public class BlueTele extends OpMode {
         }
 
         // ================= LIFT TOGGLE =================
-        boolean liftPressed = gamepad2.dpad_up;
+        boolean liftPressed = gamepad1.back;
 
         if (liftPressed && !lastLiftToggle) {
             liftToggle = !liftToggle;

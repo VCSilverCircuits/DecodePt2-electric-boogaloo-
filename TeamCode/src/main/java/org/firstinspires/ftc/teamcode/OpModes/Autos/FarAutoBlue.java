@@ -47,8 +47,8 @@ public class FarAutoBlue extends OpMode {
     private static final Pose firingPose = new Pose(53, 12.019, Math.toRadians(180));
 
     private static final Pose intake1 = new Pose(9, 35.5, Math.toRadians(180));
-    private static final Pose intake2 = new Pose(9, 13.019, Math.toRadians(180));
-    private static final Pose endPose = new Pose(20, 12.019, Math.toRadians(180));
+    private static final Pose intake2 = new Pose(10.5, 13.019, Math.toRadians(180));
+    private static final Pose endPose = new Pose(22, 12.019, Math.toRadians(180));
 
     @Override
     public void init() {
@@ -113,16 +113,20 @@ public class FarAutoBlue extends OpMode {
         telemetry.update();
 
         // End condition
-        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5) {
-            endTriggered = true;
-            follower.followPath(paths.firingToEnd);
-        }
+//        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 28.5 && !servos.isRunning()) {
+//            endTriggered = true;
+//            follower.followPath(paths.firingToEnd);
+//        }
         PoseStorage.currentPose = new Pose (follower.getPose().getX()+36, follower.getPose().getY()-7, follower.getHeading());
         PoseStorage.turretRadians = turret.getTurretPosition();
         if (!endTriggered) {
             pathState = paths.autonomousPathUpdate(pathState, robotPose);
         } else {
             turret.manualOffsetRad = 0;
+        }
+        if (!endTriggered && poseTimer.getElapsedTimeSeconds() >= 27.5 && !servos.isRunning()) {
+            endTriggered = true;
+            follower.followPath(paths.firingToEnd);
         }
     }
 
